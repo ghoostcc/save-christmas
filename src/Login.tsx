@@ -62,8 +62,8 @@ const Login: React.FC<LoginProps> = ({ onGoogleLogin }) => {
   return (
     <div
       style={{
-        width: "100%",
-        height: "100%",
+        width: "100vw",
+        height: "100vh",
         backgroundImage: "url('/login2.png')",
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
@@ -71,11 +71,12 @@ const Login: React.FC<LoginProps> = ({ onGoogleLogin }) => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        position: "absolute",
+        position: "fixed",
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
+        overflow: "hidden",
       }}
     >
       <button
