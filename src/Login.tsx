@@ -1,117 +1,221 @@
-import React, { useEffect } from "react";
+import React, { useState } from "react";
 
 type LoginProps = {
-  onGoogleLogin: (credential: string) => void;
+  onEmailSubmit: (email: string) => void;
 };
 
-// 定義 Google One Tap 的 TypeScript 類型
-declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (config: any) => void;
-          prompt: (callback?: (notification: any) => void) => void;
-          cancel: () => void;
-        };
-      };
-    };
-  }
-}
+const Login: React.FC<LoginProps> = ({ onEmailSubmit }) => {
+  const [showEmailInput, setShowEmailInput] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-const Login: React.FC<LoginProps> = ({ onGoogleLogin }) => {
-  useEffect(() => {
-    // 等待 Google Script 載入完成
-    const initializeGoogleOneTap = () => {
-      if (window.google) {
-        window.google.accounts.id.initialize({
-          client_id: "595891928592-5tg3ojbseff3c61oiqoucsq8vb8je0bn.apps.googleusercontent.com",
-          callback: (res: any) => {
-            console.log("Google One Tap 回傳：", res);
-            if (res.credential) {
-              onGoogleLogin(res.credential);
-            }
-          },
-          auto_select: false,
-          cancel_on_tap_outside: true,
-        });
-        
-        // 取消自動彈出
-        window.google.accounts.id.cancel();
-      } else {
-        // 如果 Google Script 還沒載入，等待一下再試
-        setTimeout(initializeGoogleOneTap, 100);
-      }
-    };
+  const handleStartClick = () => {
+    setShowEmailInput(true);
+  };
 
-    initializeGoogleOneTap();
-  }, [onGoogleLogin]);
-
-  const handleStart = () => {
-    if (window.google) {
-      window.google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          console.log("One Tap 未顯示或被跳過");
-        }
-      });
-    } else {
-      console.error("Google One Tap 尚未載入");
+  const handleEmailSubmit = () => {
+    if (!email || !email.includes("@")) {
+      alert("請輸入有效的 Email");
+      return;
     }
+    setIsLoading(true);
+    onEmailSubmit(email);
   };
 
   return (
     <div
       style={{
-        width: "100vw",
-        height: "100vh",
-        backgroundImage: "url('/login2.png')",
-        backgroundSize: "cover",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center center",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
         position: "fixed",
         top: 0,
         left: 0,
-        right: 0,
-        bottom: 0,
+        width: "100%",
+        height: "100%",
         overflow: "hidden",
       }}
     >
-      <button
-        type="button"
-        onClick={handleStart}
+      {/* 背景圖片 */}
+      <div
         style={{
-          width: "190px",
-          height: "90px",
-          backgroundImage: "url('/startButton.png')",
-          backgroundSize: "contain",
-          backgroundRepeat: "no-repeat",
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "100%",
+          height: "100%",
+          backgroundImage: "url('/login2.png')",
+          backgroundSize: "cover",
           backgroundPosition: "center",
-          backgroundColor: "transparent",
-          border: "none",
-          cursor: "pointer",
-          transition: "transform 0.1s ease",
-          outline: "none",
+          backgroundRepeat: "no-repeat",
         }}
-        onMouseDown={(e) => {
-          e.currentTarget.style.transform = "scale(0.95)";
-        }}
-        onMouseUp={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-        }}
-        onTouchStart={(e) => {
-          e.currentTarget.style.transform = "scale(0.95)";
-        }}
-        onTouchEnd={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-        }}
-        aria-label="開始遊戲"
       />
+
+      {/* 內容容器 */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 10,
+        }}
+      >
+        {!showEmailInput ? (
+          /* START 按鈕 */
+          <button
+            type="button"
+            onClick={handleStartClick}
+            style={{
+              width: "190px",
+              height: "90px",
+              backgroundImage: "url('/startButton.png')",
+              backgroundSize: "contain",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center",
+              backgroundColor: "transparent",
+              border: "none",
+              cursor: "pointer",
+              transition: "transform 0.1s ease",
+              outline: "none",
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = "scale(0.95)";
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
+            }}
+            onTouchStart={(e) => {
+              e.currentTarget.style.transform = "scale(0.95)";
+            }}
+            onTouchEnd={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
+            }}
+            aria-label="開始遊戲"
+          />
+        ) : (
+          /* Email 輸入區塊 */
+          <div
+            style={{
+              backgroundColor: "rgba(255, 255, 255, 0.95)",
+              padding: "40px",
+              borderRadius: "20px",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+              maxWidth: "90%",
+              width: "400px",
+              textAlign: "center",
+            }}
+          >
+            <h2
+              style={{
+                color: "#2d5016",
+                marginBottom: "10px",
+                fontSize: "24px",
+                fontWeight: "bold",
+              }}
+            >
+              拯救聖誕節之前,先幫我填寫email吧!!
+            </h2>
+            <p
+              style={{
+                color: "#666",
+                fontSize: "14px",
+                marginBottom: "25px",
+              }}
+            >
+              (一定要填寫正確喔,點擊老公才可以發送驗證信給你)
+            </p>
+
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  handleEmailSubmit();
+                }
+              }}
+              placeholder="請輸入你的 Email"
+              disabled={isLoading}
+              style={{
+                width: "100%",
+                padding: "15px",
+                fontSize: "16px",
+                border: "2px solid #ddd",
+                borderRadius: "10px",
+                marginBottom: "20px",
+                outline: "none",
+                transition: "border-color 0.3s",
+                boxSizing: "border-box",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = "#4CAF50";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "#ddd";
+              }}
+            />
+
+            <button
+              type="button"
+              onClick={handleEmailSubmit}
+              disabled={isLoading}
+              style={{
+                width: "220px",
+                height: "80px",
+                backgroundImage: "url('/iamreadyButton.png')",
+                backgroundSize: "contain",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center",
+                backgroundColor: "transparent",
+                border: "none",
+                cursor: isLoading ? "not-allowed" : "pointer",
+                transition: "transform 0.1s ease",
+                outline: "none",
+                opacity: isLoading ? 0.6 : 1,
+              }}
+              onMouseDown={(e) => {
+                if (!isLoading) e.currentTarget.style.transform = "scale(0.95)";
+              }}
+              onMouseUp={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+              }}
+              aria-label="我準備好了"
+            >
+              {isLoading && (
+                <span style={{ color: "#fff", fontSize: "14px" }}>
+                  發送中...
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowEmailInput(false)}
+              style={{
+                marginTop: "15px",
+                background: "none",
+                border: "none",
+                color: "#666",
+                fontSize: "14px",
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+            >
+              返回
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
