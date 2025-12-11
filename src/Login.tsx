@@ -129,7 +129,7 @@ const Login: React.FC<LoginProps> = ({ onEmailSubmit }) => {
                 marginBottom: "25px",
               }}
             >
-              (一定要填寫正確喔,聖誕老公公才可以發送驚喜消息給你)
+              (一定要填寫正確喔,點擊老公才可以發送驗證信給你)
             </p>
 
             <input
@@ -198,21 +198,7 @@ const Login: React.FC<LoginProps> = ({ onEmailSubmit }) => {
               )}
             </button>
 
-            <button
-              type="button"
-              onClick={() => setShowEmailInput(false)}
-              style={{
-                marginTop: "15px",
-                background: "none",
-                border: "none",
-                color: "#666",
-                fontSize: "14px",
-                cursor: "pointer",
-                textDecoration: "underline",
-              }}
-            >
-              返回
-            </button>
+
           </div>
         )}
       </div>

@@ -4,11 +4,13 @@ import ProfileSetup from "./ProfileSetup";
 import { supabase } from "./supabaseClient";
 
 export default function App() {
-  const [page, setPage] = useState<"login" | "check-email" | "profile-setup" | "home">("login");
+  const [page, setPage] = useState<"login" | "verify-code" | "profile-setup" | "home">("login");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
 
   // 檢查用戶是否已登入
   useEffect(() => {
@@ -93,29 +95,12 @@ export default function App() {
     setUserEmail(email);
     
     try {
-      console.log("檢查 Email:", email);
+      console.log("發送驗證碼到:", email);
 
-      // 先檢查這個 Email 是否已經在 profiles 資料庫中
-      const { data: existingProfile, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("email", email)
-        .maybeSingle();
-
-      if (profileError && profileError.code !== "PGRST116") {
-        console.error("查詢資料庫錯誤：", profileError);
-        setError("查詢失敗，請稍後再試");
-        setLoading(false);
-        return;
-      }
-
-      // 無論新舊用戶，都發送 Magic Link
-      console.log("發送 Magic Link 到:", email);
-      
+      // 使用 OTP（驗證碼）方式
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
-          emailRedirectTo: window.location.origin,
           shouldCreateUser: true,
         },
       });
@@ -127,18 +112,44 @@ export default function App() {
         return;
       }
 
-      if (existingProfile) {
-        console.log("老用戶 - Magic Link 已發送");
-      } else {
-        console.log("新用戶 - Magic Link 已發送");
-      }
-      
-      setPage("check-email");
+      console.log("驗證碼已發送");
+      setPage("verify-code");
       setLoading(false);
     } catch (err) {
       console.error("登入過程發生錯誤：", err);
       setError("發生錯誤，請稍後再試");
       setLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (code: string) => {
+    setIsVerifying(true);
+    setError(null);
+
+    try {
+      console.log("驗證碼：", code);
+
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email: userEmail,
+        token: code,
+        type: 'email',
+      });
+
+      if (verifyError) {
+        console.error("驗證失敗：", verifyError);
+        setError("驗證碼錯誤，請重新輸入");
+        setIsVerifying(false);
+        return;
+      }
+
+      if (data.user) {
+        await handleUserSession(data.user);
+      }
+      setIsVerifying(false);
+    } catch (err) {
+      console.error("驗證過程發生錯誤：", err);
+      setError("驗證失敗");
+      setIsVerifying(false);
     }
   };
 
@@ -224,7 +235,7 @@ export default function App() {
     return <Login onEmailSubmit={handleEmailLogin} />;
   }
 
-  if (page === "check-email") {
+  if (page === "verify-code") {
     return (
       <div style={{
         width: "100vw",
@@ -238,18 +249,60 @@ export default function App() {
         padding: "20px",
         textAlign: "center"
       }}>
-        <h1 style={{ fontSize: "32px", marginBottom: "20px" }}>📧 請查收您的信箱</h1>
+        <h1 style={{ fontSize: "32px", marginBottom: "20px" }}>🔑 輸入驗證碼</h1>
         <p style={{ fontSize: "18px", marginBottom: "10px" }}>
-          我們已經發送驗證連結到：
+          我們已經發送 6 位數驗證碼到：
         </p>
         <p style={{ fontSize: "20px", fontWeight: "bold", marginBottom: "30px" }}>
           {userEmail}
         </p>
-        <p style={{ fontSize: "16px", color: "#aaa", marginBottom: "10px" }}>
-          請點擊信件中的連結完成登入
-        </p>
-        <p style={{ fontSize: "14px", color: "#888" }}>
-          💡 提示：驗證後，下次訪問將自動登入，無需再次驗證
+        
+        <input
+          type="text"
+          value={verificationCode}
+          onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          onKeyPress={(e) => {
+            if (e.key === "Enter" && verificationCode.length === 6) {
+              handleVerifyCode(verificationCode);
+            }
+          }}
+          placeholder="請輸入 6 位數驗證碼"
+          disabled={isVerifying}
+          maxLength={6}
+          style={{
+            width: "280px",
+            padding: "15px",
+            fontSize: "24px",
+            textAlign: "center",
+            letterSpacing: "8px",
+            border: "2px solid #ddd",
+            borderRadius: "10px",
+            marginBottom: "20px",
+            outline: "none",
+            backgroundColor: isVerifying ? "#f0f0f0" : "white",
+          }}
+        />
+
+        <button
+          onClick={() => handleVerifyCode(verificationCode)}
+          disabled={isVerifying || verificationCode.length !== 6}
+          style={{
+            padding: "12px 40px",
+            fontSize: "18px",
+            cursor: isVerifying || verificationCode.length !== 6 ? "not-allowed" : "pointer",
+            backgroundColor: verificationCode.length === 6 ? "#4CAF50" : "#ccc",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+            fontWeight: "bold",
+            marginBottom: "20px",
+          }}
+        >
+          {isVerifying ? "驗證中..." : "驗證"}
+        </button>
+
+        <p style={{ fontSize: "14px", color: "#aaa" }}>
+          沒收到驗證碼？請檢查垃圾郵件
         </p>
       </div>
     );
