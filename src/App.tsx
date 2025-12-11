@@ -14,6 +14,14 @@ export default function App() {
   useEffect(() => {
     checkUser();
 
+    // 處理 URL 中的 hash fragment（驗證連結回來時）
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    if (hashParams.get('access_token')) {
+      console.log("檢測到驗證 token，正在處理...");
+      // 清除 URL hash
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+
     // 監聽登入狀態變化
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -107,7 +115,8 @@ export default function App() {
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
-          emailRedirectTo: `${window.location.origin}`,
+          emailRedirectTo: window.location.origin,
+          shouldCreateUser: true,
         },
       });
 
