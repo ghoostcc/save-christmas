@@ -259,38 +259,53 @@ export default function App() {
         
         <input
           type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
           value={verificationCode}
-          onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          onChange={(e) => {
+            const value = e.target.value.replace(/\D/g, '');
+            setVerificationCode(value);
+          }}
           onKeyPress={(e) => {
-            if (e.key === "Enter" && verificationCode.length === 6) {
+            if (e.key === "Enter" && verificationCode.length >= 6) {
               handleVerifyCode(verificationCode);
             }
           }}
-          placeholder="請輸入 6 位數驗證碼"
+          onPaste={(e) => {
+            e.preventDefault();
+            const pastedText = e.clipboardData.getData('text').replace(/\D/g, '');
+            setVerificationCode(pastedText);
+          }}
+          placeholder="請輸入驗證碼"
           disabled={isVerifying}
-          maxLength={6}
+          autoComplete="one-time-code"
           style={{
-            width: "280px",
+            width: "320px",
             padding: "15px",
             fontSize: "24px",
             textAlign: "center",
-            letterSpacing: "8px",
+            letterSpacing: "4px",
             border: "2px solid #ddd",
             borderRadius: "10px",
             marginBottom: "20px",
             outline: "none",
             backgroundColor: isVerifying ? "#f0f0f0" : "white",
+            color: "#333",
           }}
         />
 
+        <p style={{ fontSize: "14px", color: "#aaa", marginBottom: "20px" }}>
+          驗證碼長度：{verificationCode.length} 位
+        </p>
+
         <button
           onClick={() => handleVerifyCode(verificationCode)}
-          disabled={isVerifying || verificationCode.length !== 6}
+          disabled={isVerifying || verificationCode.length < 6}
           style={{
             padding: "12px 40px",
             fontSize: "18px",
-            cursor: isVerifying || verificationCode.length !== 6 ? "not-allowed" : "pointer",
-            backgroundColor: verificationCode.length === 6 ? "#4CAF50" : "#ccc",
+            cursor: isVerifying || verificationCode.length < 6 ? "not-allowed" : "pointer",
+            backgroundColor: verificationCode.length >= 6 ? "#4CAF50" : "#ccc",
             color: "white",
             border: "none",
             borderRadius: "5px",
