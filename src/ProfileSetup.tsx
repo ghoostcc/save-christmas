@@ -6,7 +6,7 @@ type ProfileSetupProps = {
 
 const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
   const [name, setName] = useState("");
-  const [color, setColor] = useState("#008919");
+  const [color, setColor] = useState("#d08919");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = () => {
@@ -18,7 +18,6 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
     onComplete(name, color);
   };
 
-  // 檢測是否為手機
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
   return (
@@ -41,41 +40,45 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         overflow: "hidden",
       }}
     >
-      {/* 內容容器 - 對齊信紙中心 */}
+      {/* 信紙圖片容器 */}
       <div
         style={{
-          width: isMobile ? "85%" : "450px",
-          padding: "40px 30px",
+          position: "relative",
+          width: "420px",
+          height: "720px",
+          backgroundImage: "url('/profileLetter.png')",
+          backgroundSize: "contain",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          marginTop: isMobile ? "80px" : "100px",
+          padding: "80px 40px 40px 40px",
         }}
       >
         {/* 標題 */}
         <h2
           style={{
             color: "#2d5016",
-            marginBottom: "35px",
-            fontSize: isMobile ? "18px" : "20px",
+            marginBottom: "25px",
+            fontSize: "18px",
             fontWeight: "bold",
             textAlign: "center",
-            lineHeight: "1.4",
+            lineHeight: "1.3",
           }}
         >
           歡迎,來到電卡索聖誕村的小精靈
         </h2>
 
         {/* 名字輸入 */}
-        <div style={{ width: "100%", marginBottom: "30px" }}>
+        <div style={{ width: "100%", marginBottom: "25px" }}>
           <label
             style={{
               display: "block",
               color: "#2d5016",
-              fontSize: isMobile ? "13px" : "14px",
+              fontSize: "13px",
               fontWeight: "600",
-              marginBottom: "8px",
-              lineHeight: "1.4",
+              marginBottom: "6px",
             }}
           >
             我該怎麼稱呼你呢?
@@ -88,10 +91,10 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             disabled={isLoading}
             style={{
               width: "100%",
-              padding: "10px 12px",
-              fontSize: "15px",
+              padding: "8px 10px",
+              fontSize: "14px",
               border: "2px solid #8B4513",
-              borderRadius: "6px",
+              borderRadius: "5px",
               backgroundColor: "#FFF9F0",
               outline: "none",
               boxSizing: "border-box",
@@ -101,42 +104,75 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         </div>
 
         {/* 顏色選擇 */}
-        <div style={{ width: "100%", marginBottom: "25px" }}>
+        <div style={{ width: "100%", marginBottom: "20px" }}>
           <label
             style={{
               display: "block",
               color: "#2d5016",
-              fontSize: isMobile ? "13px" : "14px",
+              fontSize: "13px",
               fontWeight: "600",
-              marginBottom: "12px",
-              lineHeight: "1.4",
+              marginBottom: "10px",
             }}
           >
             你喜歡甚麼顏色呢?
           </label>
           
-          {/* 調色盤 */}
+          {/* 彩色調色盤 - 使用漸層背景 */}
           <div style={{ 
             textAlign: "center", 
-            marginBottom: "12px",
+            marginBottom: "10px",
             position: "relative",
           }}>
-            <input
-              type="color"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              disabled={isLoading}
+            <div
               style={{
-                width: isMobile ? "150px" : "180px",
-                height: isMobile ? "150px" : "180px",
-                border: "3px solid #8B4513",
+                width: "160px",
+                height: "160px",
+                margin: "0 auto",
                 borderRadius: "50%",
-                cursor: "pointer",
-                WebkitAppearance: "none",
-                appearance: "none",
-                padding: 0,
+                background: `
+                  conic-gradient(
+                    from 0deg,
+                    #ff0000 0deg 60deg,
+                    #ff8800 60deg 120deg,
+                    #ffff00 120deg 180deg,
+                    #00ff00 180deg 240deg,
+                    #00ffff 240deg 300deg,
+                    #0000ff 300deg 360deg
+                  )
+                `,
+                border: "3px solid #8B4513",
+                position: "relative",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
               }}
-            />
+            >
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                disabled={isLoading}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  border: "none",
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  opacity: 0,
+                  position: "absolute",
+                }}
+              />
+              <div
+                style={{
+                  width: "80px",
+                  height: "80px",
+                  borderRadius: "50%",
+                  backgroundColor: color,
+                  border: "3px solid #8B4513",
+                  pointerEvents: "none",
+                }}
+              />
+            </div>
           </div>
 
           {/* 色票號顯示 */}
@@ -146,10 +182,10 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             readOnly
             style={{
               width: "100%",
-              padding: "10px",
-              fontSize: "15px",
+              padding: "8px",
+              fontSize: "14px",
               border: "2px solid #8B4513",
-              borderRadius: "6px",
+              borderRadius: "5px",
               backgroundColor: "#FFF9F0",
               textAlign: "center",
               fontWeight: "bold",
@@ -165,8 +201,8 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           onClick={handleSubmit}
           disabled={isLoading}
           style={{
-            width: isMobile ? "160px" : "200px",
-            height: isMobile ? "60px" : "70px",
+            width: "180px",
+            height: "65px",
             backgroundImage: "url('/continueButton.png')",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
@@ -177,7 +213,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             transition: "transform 0.1s ease",
             outline: "none",
             opacity: isLoading ? 0.6 : 1,
-            marginTop: "15px",
+            marginTop: "10px",
           }}
           onMouseDown={(e) => {
             if (!isLoading) e.currentTarget.style.transform = "scale(0.95)";
@@ -197,27 +233,13 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         {isLoading && (
           <p style={{ 
             color: "#2d5016", 
-            marginTop: "15px",
-            fontSize: "14px",
+            marginTop: "10px",
+            fontSize: "13px",
           }}>
             儲存中...
           </p>
         )}
       </div>
-
-      <style>{`
-        input[type="color"]::-webkit-color-swatch-wrapper {
-          padding: 0;
-        }
-        input[type="color"]::-webkit-color-swatch {
-          border: none;
-          border-radius: 50%;
-        }
-        input[type="color"]::-moz-color-swatch {
-          border: none;
-          border-radius: 50%;
-        }
-      `}</style>
     </div>
   );
 };
