@@ -18,215 +18,246 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
     onComplete(name, color);
   };
 
-  const isMobile =
-    typeof window !== "undefined" && window.innerWidth <= 768;
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
   return (
-    /* ===== 全畫面背景 ===== */
     <div
       style={{
-        minHeight: "100vh",
+        position: "fixed",
+        top: 0,
+        left: 0,
         width: "100%",
-        backgroundImage: isMobile
-          ? "url('/profileMobile.png')"
+        height: "100%",
+        backgroundImage: isMobile 
+          ? "url('/profileMobile.png')" 
           : "url('/profile.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
         display: "flex",
         justifyContent: "center",
-        alignItems: "center",
+        alignItems: "flex-start",
+        overflow: "hidden",
       }}
     >
-      {/* ===== 信紙外殼（只負責圖片） ===== */}
+      {/* 內容容器 - 使用絕對定位 */}
       <div
         style={{
-          width: "420px",
-          maxWidth: "90vw",
-          aspectRatio: "420 / 720",
-          backgroundImage: "url('/profileLetter.png')",
-          backgroundSize: "contain",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
           position: "relative",
+          width: "100%",
+          maxWidth: "1440px",
+          height: "100%",
         }}
       >
-        {/* ===== 內容安全區（真正排版） ===== */}
+        {/* 標題 */}
         <div
           style={{
             position: "absolute",
-            top: "14%",
-            left: "10%",
-            right: "10%",
-            bottom: "10%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
+            top: "329.2px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            color: "#2d5016",
+            fontSize: "18px",
+            fontWeight: "bold",
+            textAlign: "center",
+            whiteSpace: "nowrap",
           }}
         >
-          {/* 標題 */}
-          <h2
-            style={{
-              color: "#2d5016",
-              marginBottom: "20px",
-              fontSize: "18px",
-              fontWeight: "bold",
-              textAlign: "center",
-              lineHeight: "1.3",
-            }}
-          >
-            歡迎，來到電卡索聖誕村的小精靈
-          </h2>
+          歡迎,來到電卡索聖誕村的小精靈
+        </div>
 
-          {/* 名字輸入 */}
-          <div style={{ width: "100%", marginBottom: "20px" }}>
-            <label
-              style={{
-                display: "block",
-                color: "#2d5016",
-                fontSize: "13px",
-                fontWeight: 600,
-                marginBottom: "6px",
-              }}
-            >
-              我該怎麼稱呼你呢？
-            </label>
+        {/* 第一個問題 */}
+        <div
+          style={{
+            position: "absolute",
+            top: "427.3px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            color: "#2d5016",
+            fontSize: "14px",
+            fontWeight: "600",
+          }}
+        >
+          我該怎麼稱呼你呢?
+        </div>
 
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="輸入你的名字"
-              disabled={isLoading}
-              style={{
-                width: "100%",
-                padding: "8px 10px",
-                fontSize: "14px",
-                border: "2px solid #8B4513",
-                borderRadius: "5px",
-                backgroundColor: "#FFF9F0",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
+        {/* 輸入框 */}
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="輸入你的名字"
+          disabled={isLoading}
+          style={{
+            position: "absolute",
+            top: "456px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "340px",
+            height: "38.9px",
+            padding: "0 12px",
+            fontSize: "14px",
+            border: "none",
+            borderRadius: "5px",
+            backgroundColor: "rgba(255, 249, 240, 0.9)",
+            outline: "none",
+            boxSizing: "border-box",
+            color: "#333",
+          }}
+        />
 
-          {/* 顏色選擇 */}
-          <div style={{ width: "100%", marginBottom: "20px" }}>
-            <label
-              style={{
-                display: "block",
-                color: "#2d5016",
-                fontSize: "13px",
-                fontWeight: 600,
-                marginBottom: "10px",
-              }}
-            >
-              你喜歡什麼顏色呢？
-            </label>
+        {/* 第二個問題 */}
+        <div
+          style={{
+            position: "absolute",
+            top: "521.9px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            color: "#2d5016",
+            fontSize: "14px",
+            fontWeight: "600",
+          }}
+        >
+          你喜歡甚麼顏色呢?
+        </div>
 
-            {/* 調色盤 */}
-            <div style={{ textAlign: "center", marginBottom: "10px" }}>
-              <div
-                style={{
-                  width: "160px",
-                  height: "160px",
-                  margin: "0 auto",
-                  borderRadius: "50%",
-                  background: `
-                    conic-gradient(
-                      #ff0000,
-                      #ff8800,
-                      #ffff00,
-                      #00ff00,
-                      #00ffff,
-                      #0000ff,
-                      #ff0000
-                    )
-                  `,
-                  border: "3px solid #8B4513",
-                  position: "relative",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <input
-                  type="color"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  disabled={isLoading}
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    opacity: 0,
-                    cursor: "pointer",
-                  }}
-                />
-
-                <div
-                  style={{
-                    width: "80px",
-                    height: "80px",
-                    borderRadius: "50%",
-                    backgroundColor: color,
-                    border: "3px solid #8B4513",
-                    pointerEvents: "none",
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* 色碼 */}
-            <input
-              type="text"
-              value={color.toUpperCase()}
-              readOnly
-              style={{
-                width: "100%",
-                padding: "8px",
-                fontSize: "14px",
-                border: "2px solid #8B4513",
-                borderRadius: "5px",
-                backgroundColor: "#FFF9F0",
-                textAlign: "center",
-                fontWeight: "bold",
-              }}
-            />
-          </div>
-
-          {/* Continue */}
-          <button
-            type="button"
-            onClick={handleSubmit}
+        {/* 調色盤 */}
+        <div
+          style={{
+            position: "absolute",
+            top: "560.4px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "152px",
+            height: "152px",
+          }}
+        >
+          <input
+            type="color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
             disabled={isLoading}
             style={{
-              width: "180px",
-              height: "65px",
-              backgroundImage: "url('/continueButton.png')",
-              backgroundSize: "contain",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center",
-              backgroundColor: "transparent",
+              width: "152px",
+              height: "152px",
               border: "none",
-              cursor: isLoading ? "not-allowed" : "pointer",
-              opacity: isLoading ? 0.6 : 1,
-              marginTop: "10px",
+              borderRadius: "50%",
+              cursor: "pointer",
+              WebkitAppearance: "none",
+              MozAppearance: "none",
+              appearance: "none",
+              padding: 0,
             }}
           />
-
-          {isLoading && (
-            <p
-              style={{
-                marginTop: "8px",
-                fontSize: "13px",
-                color: "#2d5016",
-              }}
-            >
-              儲存中…
-            </p>
-          )}
         </div>
+
+        {/* 色票框 */}
+        <input
+          type="text"
+          value={color.toUpperCase()}
+          readOnly
+          style={{
+            position: "absolute",
+            top: "738.3px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "340px",
+            height: "38.9px",
+            padding: "0 12px",
+            fontSize: "14px",
+            border: "none",
+            borderRadius: "5px",
+            backgroundColor: "rgba(255, 249, 240, 0.9)",
+            textAlign: "center",
+            fontWeight: "bold",
+            boxSizing: "border-box",
+            color: "#333",
+          }}
+        />
+
+        {/* Continue 按鈕 */}
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isLoading}
+          style={{
+            position: "absolute",
+            top: "817.3px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "200px",
+            height: "70px",
+            backgroundImage: "url('/continueButton.png')",
+            backgroundSize: "contain",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            backgroundColor: "transparent",
+            border: "none",
+            cursor: isLoading ? "not-allowed" : "pointer",
+            transition: "transform 0.1s ease",
+            outline: "none",
+            opacity: isLoading ? 0.6 : 1,
+          }}
+          onMouseDown={(e) => {
+            if (!isLoading) e.currentTarget.style.transform = "translateX(-50%) scale(0.95)";
+          }}
+          onMouseUp={(e) => {
+            e.currentTarget.style.transform = "translateX(-50%) scale(1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateX(-50%) scale(1)";
+          }}
+          onTouchStart={(e) => {
+            if (!isLoading) e.currentTarget.style.transform = "translateX(-50%) scale(0.95)";
+          }}
+          onTouchEnd={(e) => {
+            e.currentTarget.style.transform = "translateX(-50%) scale(1)";
+          }}
+          aria-label="繼續"
+        />
+        
+        {isLoading && (
+          <div
+            style={{
+              position: "absolute",
+              top: "900px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              color: "#2d5016",
+              fontSize: "14px",
+            }}
+          >
+            儲存中...
+          </div>
+        )}
       </div>
+
+      <style>{`
+        input[type="color"] {
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          background: none;
+          border: 0;
+          cursor: pointer;
+          padding: 0;
+        }
+        
+        input[type="color"]::-webkit-color-swatch-wrapper {
+          padding: 0;
+          border: none;
+        }
+        
+        input[type="color"]::-webkit-color-swatch {
+          border: none;
+          border-radius: 50%;
+        }
+        
+        input[type="color"]::-moz-color-swatch {
+          border: none;
+          border-radius: 50%;
+        }
+      `}</style>
     </div>
   );
 };
