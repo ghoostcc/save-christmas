@@ -178,7 +178,19 @@ export default function App() {
 
   const handleProfileComplete = async (name: string, color: string) => {
     setLoading(true);
+    setError(null);
+    
     try {
+      console.log("儲存個人資料:", { userId, userEmail, name, color });
+
+      // 檢查 userId 是否存在
+      if (!userId) {
+        setError("用戶 ID 不存在，請重新登入");
+        setLoading(false);
+        setPage("login");
+        return;
+      }
+
       // 儲存用戶資料到 profiles 資料表
       const { error: insertError } = await supabase
         .from("profiles")
@@ -191,17 +203,17 @@ export default function App() {
 
       if (insertError) {
         console.error("儲存個人資料失敗：", insertError);
-        setError("儲存失敗，請稍後再試");
+        setError(`儲存失敗：${insertError.message}`);
         setLoading(false);
         return;
       }
 
-      console.log("個人資料已儲存");
+      console.log("個人資料已儲存成功");
       setPage("home");
       setLoading(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error("儲存個人資料錯誤：", err);
-      setError("發生錯誤");
+      setError(`發生錯誤：${err.message || '未知錯誤'}`);
       setLoading(false);
     }
   };
@@ -274,7 +286,7 @@ export default function App() {
       }}>
         <h1 style={{ fontSize: "32px", marginBottom: "20px" }}>🔑 輸入驗證碼</h1>
         <p style={{ fontSize: "18px", marginBottom: "10px" }}>
-          我們已經發送 6 位數驗證碼到：
+          我們已經發送驗證碼到：
         </p>
         <p style={{ fontSize: "20px", fontWeight: "bold", marginBottom: "30px" }}>
           {userEmail}
