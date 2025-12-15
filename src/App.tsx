@@ -14,7 +14,18 @@ export default function App() {
 
   // 檢查用戶是否已登入
   useEffect(() => {
-    checkUser();
+    let mounted = true;
+
+    const initAuth = async () => {
+      try {
+        await checkUser();
+      } catch (err) {
+        console.error("初始化錯誤：", err);
+        if (mounted) setLoading(false);
+      }
+    };
+
+    initAuth();
 
     // 處理 URL 中的 hash fragment（驗證連結回來時）
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -27,28 +38,39 @@ export default function App() {
     // 監聽登入狀態變化
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("Auth event:", event);
+        console.log("Auth event:", event, session);
         
-        if (event === "SIGNED_IN" && session) {
+        if (event === "SIGNED_IN" && session && mounted) {
           await handleUserSession(session.user);
-        } else if (event === "SIGNED_OUT") {
+        } else if (event === "SIGNED_OUT" && mounted) {
           setPage("login");
+          setLoading(false);
         }
       }
     );
 
     return () => {
+      mounted = false;
       authListener.subscription.unsubscribe();
     };
   }, []);
 
   const checkUser = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log("檢查用戶登入狀態...");
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error("取得 session 錯誤：", error);
+        setLoading(false);
+        return;
+      }
       
       if (session) {
+        console.log("找到 session，用戶已登入");
         await handleUserSession(session.user);
       } else {
+        console.log("無 session，顯示登入頁");
         setLoading(false);
       }
     } catch (err) {
@@ -59,6 +81,7 @@ export default function App() {
 
   const handleUserSession = async (user: any) => {
     try {
+      console.log("處理用戶 session:", user.id);
       setUserId(user.id);
       setUserEmail(user.email);
 
@@ -69,7 +92,7 @@ export default function App() {
         .eq("id", user.id)
         .maybeSingle();
 
-      if (profileError) {
+      if (profileError && profileError.code !== 'PGRST116') {
         console.error("查詢 profile 錯誤：", profileError);
       }
 
@@ -82,9 +105,9 @@ export default function App() {
         console.log("老用戶，導向遊戲首頁");
         setPage("home");
       }
-      setLoading(false);
     } catch (err) {
       console.error("處理用戶 session 錯誤：", err);
+    } finally {
       setLoading(false);
     }
   };
