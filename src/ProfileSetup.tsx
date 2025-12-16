@@ -157,7 +157,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           readOnly
           style={{
             position: "absolute",
-            top: "658px",
+            top: "509px",
             left: "50%",
             transform: "translateX(-50%)",
             width: "270px",
@@ -181,7 +181,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           disabled={isLoading}
           style={{
             position: "absolute",
-            top: "737px",
+            top: "538px",
             left: "50%",
             transform: "translateX(-50%)",
             width: "200px",
