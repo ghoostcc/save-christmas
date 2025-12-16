@@ -6,8 +6,8 @@ import CanvasDrawing from "./CanvasDrawing";
 import { supabase } from "./supabaseClient";
 
 // Cloudinary 設定
-const CLOUDINARY_CLOUD_NAME = "dycwc1hge"; // 替換成你的 cloud name
-const CLOUDINARY_UPLOAD_PRESET = "save_christmas_sock"; // 替換成你的 upload preset
+const CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME"; // 替換成你的 cloud name
+const CLOUDINARY_UPLOAD_PRESET = "YOUR_UPLOAD_PRESET"; // 替換成你的 upload preset
 
 export default function App() {
   const [page, setPage] = useState<"login" | "verify-code" | "profile-setup" | "start" | "canvas" | "home">("login");
@@ -19,6 +19,12 @@ export default function App() {
   const [userColor, setUserColor] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+
+  // 除錯：監控 page 狀態變化
+  useEffect(() => {
+    console.log("📍 當前頁面:", page);
+    console.log("👤 用戶資料:", { userName, userColor, userEmail });
+  }, [page, userName, userColor, userEmail]);
 
   // 檢查用戶是否已登入
   useEffect(() => {
@@ -35,14 +41,12 @@ export default function App() {
 
     initAuth();
 
-    // 處理 URL 中的 hash fragment（驗證連結回來時）
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     if (hashParams.get('access_token')) {
       console.log("檢測到驗證 token，正在處理...");
       window.history.replaceState(null, '', window.location.pathname);
     }
 
-    // 監聽登入狀態變化
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("Auth event:", event, session);
@@ -64,20 +68,20 @@ export default function App() {
 
   const checkUser = async () => {
     try {
-      console.log("檢查用戶登入狀態...");
+      console.log("🔍 檢查用戶登入狀態...");
       const { data: { session }, error } = await supabase.auth.getSession();
       
       if (error) {
-        console.error("取得 session 錯誤：", error);
+        console.error("❌ 取得 session 錯誤：", error);
         setLoading(false);
         return;
       }
       
       if (session) {
-        console.log("找到 session，用戶已登入");
+        console.log("✅ 找到 session，用戶已登入");
         await handleUserSession(session.user);
       } else {
-        console.log("無 session，顯示登入頁");
+        console.log("❌ 無 session，顯示登入頁");
         setLoading(false);
       }
     } catch (err) {
@@ -88,11 +92,10 @@ export default function App() {
 
   const handleUserSession = async (user: any) => {
     try {
-      console.log("處理用戶 session:", user.id);
+      console.log("🔄 處理用戶 session:", user.id);
       setUserId(user.id);
       setUserEmail(user.email);
 
-      // 檢查 profiles 資料表是否有此用戶資料
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("*")
@@ -100,18 +103,17 @@ export default function App() {
         .maybeSingle();
 
       if (profileError && profileError.code !== 'PGRST116') {
-        console.error("查詢 profile 錯誤：", profileError);
+        console.error("❌ 查詢 profile 錯誤：", profileError);
       }
 
       if (!profile) {
-        // 新用戶，需要設定個人資料
-        console.log("新用戶，導向個人資料設定頁");
+        console.log("👤 新用戶，導向個人資料設定頁");
         setPage("profile-setup");
       } else {
-        // 老用戶，儲存用戶資料並進入遊戲
-        console.log("老用戶，導向遊戲首頁");
+        console.log("👤 老用戶，資料:", profile);
         setUserName(profile.name);
         setUserColor(profile.color);
+        console.log("🎯 導向 START 頁面");
         setPage("start");
       }
     } catch (err) {
@@ -127,7 +129,7 @@ export default function App() {
     setUserEmail(email);
     
     try {
-      console.log("發送驗證碼到:", email);
+      console.log("📧 發送驗證碼到:", email);
 
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email: email,
@@ -137,13 +139,13 @@ export default function App() {
       });
 
       if (signInError) {
-        console.error("發送失敗：", signInError);
+        console.error("❌ 發送失敗：", signInError);
         setError("發送失敗，請檢查 Email 是否正確");
         setLoading(false);
         return;
       }
 
-      console.log("驗證碼已發送");
+      console.log("✅ 驗證碼已發送");
       setPage("verify-code");
       setLoading(false);
     } catch (err) {
@@ -158,7 +160,7 @@ export default function App() {
     setError(null);
 
     try {
-      console.log("驗證碼：", code);
+      console.log("🔐 驗證碼：", code);
 
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
         email: userEmail,
@@ -167,7 +169,7 @@ export default function App() {
       });
 
       if (verifyError) {
-        console.error("驗證失敗：", verifyError);
+        console.error("❌ 驗證失敗：", verifyError);
         setError("驗證碼錯誤，請重新輸入");
         setIsVerifying(false);
         return;
@@ -189,7 +191,7 @@ export default function App() {
     setError(null);
     
     try {
-      console.log("儲存個人資料:", { userId, userEmail, name, color });
+      console.log("💾 儲存個人資料:", { userId, userEmail, name, color });
 
       if (!userId) {
         setError("用戶 ID 不存在，請重新登入");
@@ -198,7 +200,6 @@ export default function App() {
         return;
       }
 
-      // 儲存用戶資料到 profiles 資料表
       const { error: insertError } = await supabase
         .from("profiles")
         .insert({
@@ -209,15 +210,16 @@ export default function App() {
         });
 
       if (insertError) {
-        console.error("儲存個人資料失敗：", insertError);
+        console.error("❌ 儲存個人資料失敗：", insertError);
         setError(`儲存失敗：${insertError.message}`);
         setLoading(false);
         return;
       }
 
-      console.log("個人資料已儲存成功");
+      console.log("✅ 個人資料已儲存成功");
       setUserName(name);
       setUserColor(color);
+      console.log("🎯 導向 START 頁面");
       setPage("start");
       setLoading(false);
     } catch (err: any) {
@@ -227,23 +229,21 @@ export default function App() {
     }
   };
 
-  // Start 畫面 - 按下 START
   const handleStart = () => {
+    console.log("▶️ 按下 START，導向畫布頁面");
     setPage("canvas");
   };
 
-  // Canvas 完成 - 上傳圖片並儲存
   const handleCanvasFinish = async (imageDataUrl: string) => {
     setLoading(true);
     
     try {
-      console.log("開始上傳圖片到 Cloudinary...");
+      console.log("📤 開始上傳圖片到 Cloudinary...");
 
-      // 1. 上傳圖片到 Cloudinary
       const formData = new FormData();
       formData.append('file', imageDataUrl);
       formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-      formData.append('folder', 'save-christmas'); // 可選：指定資料夾
+      formData.append('folder', 'save-christmas');
 
       const cloudinaryResponse = await fetch(
         `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -260,9 +260,8 @@ export default function App() {
       const cloudinaryData = await cloudinaryResponse.json();
       const imageUrl = cloudinaryData.secure_url;
 
-      console.log("圖片上傳成功:", imageUrl);
+      console.log("✅ 圖片上傳成功:", imageUrl);
 
-      // 2. 儲存到 Supabase socks 資料庫
       const { error: insertError } = await supabase
         .from('socks')
         .insert({
@@ -270,25 +269,27 @@ export default function App() {
           sock_name: userName,
           color_hex: userColor,
           image_url: imageUrl,
-          // message_year_end 和 message_future 會在下一頁填寫
         });
 
       if (insertError) {
-        console.error("儲存到資料庫失敗：", insertError);
+        console.error("❌ 儲存到資料庫失敗：", insertError);
         setError(`儲存失敗：${insertError.message}`);
         setLoading(false);
         return;
       }
 
-      console.log("襪子已儲存成功");
+      console.log("✅ 襪子已儲存成功");
       setPage("home");
       setLoading(false);
     } catch (err: any) {
-      console.error("儲存圖片失敗：", err);
+      console.error("❌ 儲存圖片失敗：", err);
       setError(`上傳失敗：${err.message || '未知錯誤'}`);
       setLoading(false);
     }
   };
+
+  // 渲染前的 debug 資訊
+  console.log("🎨 準備渲染頁面:", page);
 
   if (loading) {
     return (
@@ -339,10 +340,12 @@ export default function App() {
   }
 
   if (page === "login") {
+    console.log("✅ 渲染 Login 頁面");
     return <Login onEmailSubmit={handleEmailLogin} />;
   }
 
   if (page === "verify-code") {
+    console.log("✅ 渲染驗證碼頁面");
     return (
       <div style={{
         width: "100vw",
@@ -378,14 +381,8 @@ export default function App() {
               handleVerifyCode(verificationCode);
             }
           }}
-          onPaste={(e) => {
-            e.preventDefault();
-            const pastedText = e.clipboardData.getData('text').replace(/\D/g, '');
-            setVerificationCode(pastedText);
-          }}
           placeholder="請輸入驗證碼"
           disabled={isVerifying}
-          autoComplete="one-time-code"
           style={{
             width: "320px",
             padding: "15px",
@@ -401,10 +398,6 @@ export default function App() {
           }}
         />
 
-        <p style={{ fontSize: "14px", color: "#aaa", marginBottom: "20px" }}>
-          驗證碼長度：{verificationCode.length} 位
-        </p>
-
         <button
           onClick={() => handleVerifyCode(verificationCode)}
           disabled={isVerifying || verificationCode.length < 6}
@@ -417,28 +410,26 @@ export default function App() {
             border: "none",
             borderRadius: "5px",
             fontWeight: "bold",
-            marginBottom: "20px",
           }}
         >
           {isVerifying ? "驗證中..." : "驗證"}
         </button>
-
-        <p style={{ fontSize: "14px", color: "#aaa" }}>
-          沒收到驗證碼？請檢查垃圾郵件
-        </p>
       </div>
     );
   }
 
   if (page === "profile-setup") {
+    console.log("✅ 渲染 ProfileSetup 頁面");
     return <ProfileSetup onComplete={handleProfileComplete} />;
   }
 
   if (page === "start") {
+    console.log("✅ 渲染 StartScreen 頁面");
     return <StartScreen onStart={handleStart} />;
   }
 
   if (page === "canvas") {
+    console.log("✅ 渲染 CanvasDrawing 頁面");
     return (
       <CanvasDrawing
         userEmail={userEmail}
@@ -450,6 +441,7 @@ export default function App() {
   }
 
   if (page === "home") {
+    console.log("✅ 渲染完成頁面");
     return (
       <div style={{
         width: "100vw",
@@ -468,5 +460,6 @@ export default function App() {
     );
   }
 
+  console.log("⚠️ 未知頁面狀態:", page);
   return null;
 }
