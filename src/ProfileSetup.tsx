@@ -129,26 +129,24 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             top: "480px",
             left: "50%",
             transform: "translateX(-50%)",
-            width: "80px",
-            height: "80px",
+            width: "100px",     // ✅ 外層尺寸
+            height: "100px",
           }}
         >
           <input
-            type="color"
-            value={color}
-            onChange={(e) => setColor(e.target.value)}
-            disabled={isLoading}
-            style={{
-              width: "152px",
-              height: "152px",
-              border: "none",
-              borderRadius: "50%",
-              cursor: "pointer",
-              WebkitAppearance: "none",
-              MozAppearance: "none",
-              appearance: "none",
-              padding: 0,
-            }}
+          type="color"
+          value={color}
+          onChange={(e) => setColor(e.target.value)}
+          disabled={isLoading}
+          style={{
+            width: "100px",   // ✅ 內層尺寸（一定要一樣）
+            height: "100px",
+            border: "none",
+            borderRadius: "50%",
+            cursor: "pointer",
+            appearance: "none",
+            padding: 0,
+          }}
           />
         </div>
 
