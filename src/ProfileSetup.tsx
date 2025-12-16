@@ -71,7 +71,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         <div
           style={{
             position: "absolute",
-            top: "335px",
+            top: "319px",
             left: "50%",
             transform: "translateX(-50%)",
             color: "#2d5016",
@@ -91,7 +91,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           disabled={isLoading}
           style={{
             position: "absolute",
-            top: "364px",
+            top: "348px",
             left: "50%",
             transform: "translateX(-50%)",
             width: "270px",
@@ -129,8 +129,8 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             top: "480px",
             left: "50%",
             transform: "translateX(-50%)",
-            width: "110px",
-            height: "110px",
+            width: "80px",
+            height: "80px",
           }}
         >
           <input
