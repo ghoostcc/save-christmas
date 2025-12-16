@@ -1,14 +1,22 @@
 import { useState, useEffect } from "react";
 import Login from "./Login";
 import ProfileSetup from "./ProfileSetup";
+import StartScreen from "./StartScreen";
+import CanvasDrawing from "./CanvasDrawing";
 import { supabase } from "./supabaseClient";
 
+// Cloudinary 設定
+const CLOUDINARY_CLOUD_NAME = "dycwc1hge"; // 替換成你的 cloud name
+const CLOUDINARY_UPLOAD_PRESET = "save_christmas_sock"; // 替換成你的 upload preset
+
 export default function App() {
-  const [page, setPage] = useState<"login" | "verify-code" | "profile-setup" | "home">("login");
+  const [page, setPage] = useState<"login" | "verify-code" | "profile-setup" | "start" | "canvas" | "home">("login");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState("");
+  const [userName, setUserName] = useState("");
+  const [userColor, setUserColor] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
 
@@ -31,7 +39,6 @@ export default function App() {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     if (hashParams.get('access_token')) {
       console.log("檢測到驗證 token，正在處理...");
-      // 清除 URL hash
       window.history.replaceState(null, '', window.location.pathname);
     }
 
@@ -101,9 +108,11 @@ export default function App() {
         console.log("新用戶，導向個人資料設定頁");
         setPage("profile-setup");
       } else {
-        // 老用戶，直接進入遊戲
+        // 老用戶，儲存用戶資料並進入遊戲
         console.log("老用戶，導向遊戲首頁");
-        setPage("home");
+        setUserName(profile.name);
+        setUserColor(profile.color);
+        setPage("start");
       }
     } catch (err) {
       console.error("處理用戶 session 錯誤：", err);
@@ -120,7 +129,6 @@ export default function App() {
     try {
       console.log("發送驗證碼到:", email);
 
-      // 使用 OTP（驗證碼）方式
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
@@ -183,7 +191,6 @@ export default function App() {
     try {
       console.log("儲存個人資料:", { userId, userEmail, name, color });
 
-      // 檢查 userId 是否存在
       if (!userId) {
         setError("用戶 ID 不存在，請重新登入");
         setLoading(false);
@@ -209,11 +216,76 @@ export default function App() {
       }
 
       console.log("個人資料已儲存成功");
-      setPage("home");
+      setUserName(name);
+      setUserColor(color);
+      setPage("start");
       setLoading(false);
     } catch (err: any) {
       console.error("儲存個人資料錯誤：", err);
       setError(`發生錯誤：${err.message || '未知錯誤'}`);
+      setLoading(false);
+    }
+  };
+
+  // Start 畫面 - 按下 START
+  const handleStart = () => {
+    setPage("canvas");
+  };
+
+  // Canvas 完成 - 上傳圖片並儲存
+  const handleCanvasFinish = async (imageDataUrl: string) => {
+    setLoading(true);
+    
+    try {
+      console.log("開始上傳圖片到 Cloudinary...");
+
+      // 1. 上傳圖片到 Cloudinary
+      const formData = new FormData();
+      formData.append('file', imageDataUrl);
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+      formData.append('folder', 'save-christmas'); // 可選：指定資料夾
+
+      const cloudinaryResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      if (!cloudinaryResponse.ok) {
+        throw new Error('Cloudinary 上傳失敗');
+      }
+
+      const cloudinaryData = await cloudinaryResponse.json();
+      const imageUrl = cloudinaryData.secure_url;
+
+      console.log("圖片上傳成功:", imageUrl);
+
+      // 2. 儲存到 Supabase socks 資料庫
+      const { error: insertError } = await supabase
+        .from('socks')
+        .insert({
+          user_email: userEmail,
+          sock_name: userName,
+          color_hex: userColor,
+          image_url: imageUrl,
+          // message_year_end 和 message_future 會在下一頁填寫
+        });
+
+      if (insertError) {
+        console.error("儲存到資料庫失敗：", insertError);
+        setError(`儲存失敗：${insertError.message}`);
+        setLoading(false);
+        return;
+      }
+
+      console.log("襪子已儲存成功");
+      setPage("home");
+      setLoading(false);
+    } catch (err: any) {
+      console.error("儲存圖片失敗：", err);
+      setError(`上傳失敗：${err.message || '未知錯誤'}`);
       setLoading(false);
     }
   };
@@ -362,19 +434,36 @@ export default function App() {
     return <ProfileSetup onComplete={handleProfileComplete} />;
   }
 
+  if (page === "start") {
+    return <StartScreen onStart={handleStart} />;
+  }
+
+  if (page === "canvas") {
+    return (
+      <CanvasDrawing
+        userEmail={userEmail}
+        userName={userName}
+        userColor={userColor}
+        onFinish={handleCanvasFinish}
+      />
+    );
+  }
+
   if (page === "home") {
     return (
       <div style={{
         width: "100vw",
         height: "100vh",
         display: "flex",
+        flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#1a472a",
-        color: "white",
-        fontSize: "32px"
+        color: "white"
       }}>
-        遊戲首頁
+        <h1 style={{ fontSize: "48px", marginBottom: "20px" }}>🎄</h1>
+        <h2 style={{ fontSize: "32px", marginBottom: "20px" }}>完成！</h2>
+        <p style={{ fontSize: "18px" }}>你的聖誕襪已經準備好了</p>
       </div>
     );
   }
