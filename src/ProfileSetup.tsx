@@ -94,7 +94,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             top: "364px",
             left: "50%",
             transform: "translateX(-50%)",
-            width: "300px",
+            width: "270px",
             height: "38.9px",
             padding: "0 12px",
             fontSize: "14px",
@@ -129,8 +129,8 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             top: "480px",
             left: "50%",
             transform: "translateX(-50%)",
-            width: "152px",
-            height: "152px",
+            width: "135px",
+            height: "135px",
           }}
         >
           <input
@@ -162,7 +162,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             top: "658px",
             left: "50%",
             transform: "translateX(-50%)",
-            width: "340px",
+            width: "270px",
             height: "38.9px",
             padding: "0 12px",
             fontSize: "14px",
