@@ -129,8 +129,8 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             top: "480px",
             left: "50%",
             transform: "translateX(-50%)",
-            width: "135px",
-            height: "135px",
+            width: "110px",
+            height: "110px",
           }}
         >
           <input
