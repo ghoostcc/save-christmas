@@ -47,7 +47,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           width: "100%",
           maxWidth: "1440px",
           height: "100%",
-          transform: "translateY(-95px)", // ⭐ 重點在這
+          transform: "translateY(-92px)", // ⭐ 重點在這
         }}
       >
         {/* 標題 */}
@@ -71,7 +71,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         <div
           style={{
             position: "absolute",
-            top: "348px",
+            top: "335px",
             left: "50%",
             transform: "translateX(-50%)",
             color: "#2d5016",
@@ -91,7 +91,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           disabled={isLoading}
           style={{
             position: "absolute",
-            top: "377px",
+            top: "364px",
             left: "50%",
             transform: "translateX(-50%)",
             width: "300px",
