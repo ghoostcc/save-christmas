@@ -18,7 +18,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
     onComplete(name, color);
   };
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+  const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
 
   return (
     <div
@@ -28,8 +28,8 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         left: 0,
         width: "100%",
         height: "100%",
-        backgroundImage: isMobile 
-          ? "url('/profileMobile.png')" 
+        backgroundImage: isMobile
+          ? "url('/profileMobile.png')"
           : "url('/profile.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
@@ -40,13 +40,14 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         overflow: "hidden",
       }}
     >
-      {/* 內容容器 - 使用絕對定位 */}
+      {/* 內容容器 - 整體往上 100px */}
       <div
         style={{
           position: "relative",
           width: "100%",
           maxWidth: "1440px",
           height: "100%",
+          transform: "translateY(-100px)", // ⭐ 重點在這
         }}
       >
         {/* 標題 */}
@@ -199,23 +200,30 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             opacity: isLoading ? 0.6 : 1,
           }}
           onMouseDown={(e) => {
-            if (!isLoading) e.currentTarget.style.transform = "translateX(-50%) scale(0.95)";
+            if (!isLoading)
+              e.currentTarget.style.transform =
+                "translateX(-50%) scale(0.95)";
           }}
           onMouseUp={(e) => {
-            e.currentTarget.style.transform = "translateX(-50%) scale(1)";
+            e.currentTarget.style.transform =
+              "translateX(-50%) scale(1)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateX(-50%) scale(1)";
+            e.currentTarget.style.transform =
+              "translateX(-50%) scale(1)";
           }}
           onTouchStart={(e) => {
-            if (!isLoading) e.currentTarget.style.transform = "translateX(-50%) scale(0.95)";
+            if (!isLoading)
+              e.currentTarget.style.transform =
+                "translateX(-50%) scale(0.95)";
           }}
           onTouchEnd={(e) => {
-            e.currentTarget.style.transform = "translateX(-50%) scale(1)";
+            e.currentTarget.style.transform =
+              "translateX(-50%) scale(1)";
           }}
           aria-label="繼續"
         />
-        
+
         {isLoading && (
           <div
             style={{
@@ -242,17 +250,17 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           cursor: pointer;
           padding: 0;
         }
-        
+
         input[type="color"]::-webkit-color-swatch-wrapper {
           padding: 0;
           border: none;
         }
-        
+
         input[type="color"]::-webkit-color-swatch {
           border: none;
           border-radius: 50%;
         }
-        
+
         input[type="color"]::-moz-color-swatch {
           border: none;
           border-radius: 50%;
