@@ -216,12 +216,10 @@ export default function App() {
         return;
       }
 
-      console.log("✅ 個人資料已儲存成功");
-      setUserName(name);
-      setUserColor(color);
-      console.log("🎯 導向 START 頁面");
-      setPage("start");
-      setLoading(false);
+      console.log("✅ 個人資料已儲存成功，重新載入頁面");
+      
+      // 儲存成功後重新載入頁面，讓系統重新檢查用戶狀態
+      window.location.reload();
     } catch (err: any) {
       console.error("儲存個人資料錯誤：", err);
       setError(`發生錯誤：${err.message || '未知錯誤'}`);
