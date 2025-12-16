@@ -71,7 +71,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         <div
           style={{
             position: "absolute",
-            top: "319px",
+            top: "325px",
             left: "50%",
             transform: "translateX(-50%)",
             color: "#2d5016",
@@ -91,7 +91,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           disabled={isLoading}
           style={{
             position: "absolute",
-            top: "348px",
+            top: "354px",
             left: "50%",
             transform: "translateX(-50%)",
             width: "270px",
@@ -157,7 +157,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           readOnly
           style={{
             position: "absolute",
-            top: "509px",
+            top: "550px",
             left: "50%",
             transform: "translateX(-50%)",
             width: "270px",
@@ -181,7 +181,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           disabled={isLoading}
           style={{
             position: "absolute",
-            top: "538px",
+            top: "600px",
             left: "50%",
             transform: "translateX(-50%)",
             width: "200px",
