@@ -47,7 +47,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           width: "100%",
           maxWidth: "1440px",
           height: "100%",
-          transform: "translateY(-100px)", // ⭐ 重點在這
+          transform: "translateY(-95px)", // ⭐ 重點在這
         }}
       >
         {/* 標題 */}
@@ -94,7 +94,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             top: "377px",
             left: "50%",
             transform: "translateX(-50%)",
-            width: "340px",
+            width: "300px",
             height: "38.9px",
             padding: "0 12px",
             fontSize: "14px",
