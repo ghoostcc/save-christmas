@@ -268,6 +268,7 @@ export default function App() {
   // 已登入且有 profile，但還沒開始繪製 - 顯示 Start 畫面
   if (isLoggedIn && hasProfile && !showCanvas) {
     return <StartScreen onStart={handleStart} />;
+    console.log("🎨 當前狀態:", { isLoggedIn, hasProfile, showCanvas, loading });
   }
 
   // 顯示畫布
