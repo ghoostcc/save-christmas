@@ -187,41 +187,52 @@ export default function App() {
   };
 
   const handleProfileComplete = async (name: string, color: string) => {
+    console.log("💾 開始儲存個人資料...");
     setLoading(true);
     setError(null);
     
     try {
-      console.log("💾 儲存個人資料:", { userId, userEmail, name, color });
+      console.log("📝 準備儲存的資料:", { userId, userEmail, name, color });
 
       if (!userId) {
+        console.error("❌ 用戶 ID 不存在");
         setError("用戶 ID 不存在，請重新登入");
         setLoading(false);
         setPage("login");
         return;
       }
 
-      const { error: insertError } = await supabase
+      console.log("🔄 正在寫入 Supabase...");
+      
+      const { data, error: insertError } = await supabase
         .from("profiles")
         .insert({
           id: userId,
           email: userEmail,
           name: name,
           color: color,
-        });
+        })
+        .select();
+
+      console.log("📊 Supabase 回應 - data:", data);
+      console.log("📊 Supabase 回應 - error:", insertError);
 
       if (insertError) {
         console.error("❌ 儲存個人資料失敗：", insertError);
-        setError(`儲存失敗：${insertError.message}`);
+        setError(`儲存失敗：${insertError.message}\n詳細資訊: ${insertError.details || '無'}\n提示: ${insertError.hint || '無'}`);
         setLoading(false);
         return;
       }
 
-      console.log("✅ 個人資料已儲存成功，重新載入頁面");
+      console.log("✅ 個人資料已儲存成功，準備重新載入頁面");
       
-      // 儲存成功後重新載入頁面，讓系統重新檢查用戶狀態
-      window.location.reload();
+      // 儲存成功後重新載入頁面
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+      
     } catch (err: any) {
-      console.error("儲存個人資料錯誤：", err);
+      console.error("❌ 儲存個人資料發生例外錯誤：", err);
       setError(`發生錯誤：${err.message || '未知錯誤'}`);
       setLoading(false);
     }
