@@ -27,17 +27,16 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
         overflow: "hidden",
       }}
     >
-      {/* START 按鈕 */}
+      {/* START 按鈕 - 放在藍圖的綠色框框位置 */}
       <button
         type="button"
         onClick={onStart}
         style={{
           position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "250px",
-          height: "90px",
+          top: "35%",
+          right: "35%",
+          width: "180px",
+          height: "80px",
           backgroundImage: "url('/drawstartButton.png')",
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
@@ -49,19 +48,19 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
           outline: "none",
         }}
         onMouseDown={(e) => {
-          e.currentTarget.style.transform = "translate(-50%, -50%) scale(0.95)";
+          e.currentTarget.style.transform = "scale(0.95)";
         }}
         onMouseUp={(e) => {
-          e.currentTarget.style.transform = "translate(-50%, -50%) scale(1)";
+          e.currentTarget.style.transform = "scale(1)";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "translate(-50%, -50%) scale(1)";
+          e.currentTarget.style.transform = "scale(1)";
         }}
         onTouchStart={(e) => {
-          e.currentTarget.style.transform = "translate(-50%, -50%) scale(0.95)";
+          e.currentTarget.style.transform = "scale(0.95)";
         }}
         onTouchEnd={(e) => {
-          e.currentTarget.style.transform = "translate(-50%, -50%) scale(1)";
+          e.currentTarget.style.transform = "scale(1)";
         }}
         aria-label="開始繪製"
       />
