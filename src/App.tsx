@@ -79,6 +79,15 @@ export default function App() {
       }
 
       setLoading(false);
+      
+      // 🎯 Debug: 檢查完認證後的狀態
+      console.log("🎨 checkAuth 完成後的狀態:", {
+        isLoggedIn: true,
+        hasProfile: !!profile,
+        showCanvas: false,
+        loading: false
+      });
+      
     } catch (err) {
       console.error("❌ 檢查認證錯誤:", err);
       setLoading(false);
@@ -99,6 +108,8 @@ export default function App() {
     setUserEmail(email);
     
     try {
+      console.log("📧 發送驗證碼到:", email);
+      
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email: email,
         options: { shouldCreateUser: true },
@@ -109,6 +120,13 @@ export default function App() {
       console.log("✅ 驗證碼已發送");
       setAwaitingVerification(true);
       setLoading(false);
+      
+      // 🎯 Debug
+      console.log("🎨 發送驗證碼後的狀態:", {
+        awaitingVerification: true,
+        loading: false
+      });
+      
     } catch (err: any) {
       console.error("❌ 登入錯誤:", err);
       setError(err.message);
@@ -122,6 +140,8 @@ export default function App() {
     setError(null);
 
     try {
+      console.log("🔐 驗證碼：", code);
+
       const { error: verifyError } = await supabase.auth.verifyOtp({
         email: userEmail,
         token: code,
@@ -145,7 +165,8 @@ export default function App() {
     setLoading(true);
     
     try {
-      console.log("💾 儲存 profile...");
+      console.log("💾 開始儲存 profile...");
+      console.log("📝 準備儲存的資料:", { userId, userEmail, name, color });
       
       const { error: insertError } = await supabase
         .from("profiles")
@@ -156,13 +177,39 @@ export default function App() {
           color: color,
         });
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error("❌ Supabase 錯誤:", insertError);
+        throw insertError;
+      }
 
       console.log("✅ Profile 儲存成功");
+      
+      // 更新狀態
       setUserName(name);
       setUserColor(color);
       setHasProfile(true);
       setLoading(false);
+      
+      // 🎯 重點 Debug：儲存完成後的狀態
+      console.log("🎨 Profile 儲存後的狀態:", {
+        isLoggedIn: isLoggedIn,
+        hasProfile: true,  // 剛設定的
+        showCanvas: showCanvas,
+        loading: false,
+        userName: name,
+        userColor: color
+      });
+      
+      // 🎯 額外檢查：1 秒後再看一次狀態
+      setTimeout(() => {
+        console.log("🕐 1秒後的狀態:", {
+          isLoggedIn: isLoggedIn,
+          hasProfile: hasProfile,
+          showCanvas: showCanvas,
+          loading: loading
+        });
+      }, 1000);
+      
     } catch (err: any) {
       console.error("❌ 儲存錯誤:", err);
       setError(`儲存失敗: ${err.message}`);
@@ -212,8 +259,19 @@ export default function App() {
     }
   };
 
+  // 🎯 在每次渲染時都 log 當前狀態
+  console.log("🎨 當前渲染狀態:", {
+    isLoggedIn,
+    hasProfile,
+    showCanvas,
+    loading,
+    awaitingVerification,
+    error
+  });
+
   // Loading 畫面
   if (loading) {
+    console.log("✅ 渲染: Loading 畫面");
     return (
       <div style={{ width: "100vw", height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#1a472a" }}>
         <div style={{ color: "white", fontSize: "24px" }}>載入中...</div>
@@ -223,6 +281,7 @@ export default function App() {
 
   // Error 畫面
   if (error) {
+    console.log("✅ 渲染: Error 畫面");
     return (
       <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", backgroundColor: "#1a472a", padding: "20px" }}>
         <div style={{ color: "red", fontSize: "20px", marginBottom: "20px", textAlign: "center" }}>{error}</div>
@@ -235,11 +294,13 @@ export default function App() {
 
   // 未登入 - 顯示登入頁
   if (!isLoggedIn && !awaitingVerification) {
+    console.log("✅ 渲染: Login 頁面");
     return <Login onEmailSubmit={handleEmailLogin} />;
   }
 
   // 等待驗證碼
   if (awaitingVerification) {
+    console.log("✅ 渲染: 驗證碼頁面");
     return (
       <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", backgroundColor: "#1a472a", color: "white", padding: "20px", textAlign: "center" }}>
         <h1 style={{ fontSize: "32px", marginBottom: "20px" }}>🔑 輸入驗證碼</h1>
@@ -262,17 +323,19 @@ export default function App() {
 
   // 已登入但沒有 profile - 顯示設定頁
   if (isLoggedIn && !hasProfile) {
+    console.log("✅ 渲染: ProfileSetup 頁面");
     return <ProfileSetup onComplete={handleProfileComplete} />;
   }
 
   // 已登入且有 profile，但還沒開始繪製 - 顯示 Start 畫面
   if (isLoggedIn && hasProfile && !showCanvas) {
+    console.log("✅ 渲染: StartScreen 頁面");
     return <StartScreen onStart={handleStart} />;
-    console.log("🎨 當前狀態:", { isLoggedIn, hasProfile, showCanvas, loading });
   }
 
   // 顯示畫布
   if (showCanvas) {
+    console.log("✅ 渲染: Canvas 頁面");
     return (
       <CanvasDrawing
         userEmail={userEmail}
@@ -283,5 +346,6 @@ export default function App() {
     );
   }
 
+  console.log("⚠️ 沒有符合任何條件，返回 null");
   return null;
 }
