@@ -8,8 +8,8 @@ type CanvasDrawingProps = {
 };
 
 const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
-  userEmail,
-  userName,
+  userEmail: _userEmail,
+  userName: _userName,
   userColor,
   onFinish,
 }) => {
