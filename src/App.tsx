@@ -3,6 +3,7 @@ import Login from "./Login";
 import ProfileSetup from "./ProfileSetup";
 import StartScreen from "./StartScreen";
 import CanvasDrawing from "./CanvasDrawing";
+import LetterPage from "./LetterPage";
 import { supabase } from "./supabaseClient";
 
 // Cloudinary 設定
@@ -13,6 +14,7 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
   const [showCanvas, setShowCanvas] = useState(false);
+  const [showLetter, setShowLetter] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -20,6 +22,7 @@ export default function App() {
   const [userId, setUserId] = useState("");
   const [userName, setUserName] = useState("");
   const [userColor, setUserColor] = useState("");
+  const [sockId, setSockId] = useState<number | null>(null);
   const [verificationCode, setVerificationCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [awaitingVerification, setAwaitingVerification] = useState(false);
@@ -89,6 +92,7 @@ export default function App() {
     setIsLoggedIn(false);
     setHasProfile(false);
     setShowCanvas(false);
+    setShowLetter(false);
     setLoading(false);
   };
 
@@ -189,6 +193,8 @@ export default function App() {
     setLoading(true);
     
     try {
+      console.log("📤 上傳圖片到 Cloudinary...");
+      
       // 上傳到 Cloudinary
       const formData = new FormData();
       formData.append('file', imageDataUrl);
@@ -202,19 +208,62 @@ export default function App() {
       const data = await response.json();
       const imageUrl = data.secure_url;
 
-      // 儲存到 Supabase
-      await supabase.from('socks').insert({
-        user_email: userEmail,
-        sock_name: userName,
-        color_hex: userColor,
-        image_url: imageUrl,
-      });
+      console.log("✅ 圖片上傳成功:", imageUrl);
 
-      console.log("✅ 完成！");
-      alert("你的聖誕襪已經完成了！🎄");
+      // 儲存到 Supabase
+      const { data: sockData, error: insertError } = await supabase
+        .from('socks')
+        .insert({
+          user_email: userEmail,
+          sock_name: userName,
+          color_hex: userColor,
+          image_url: imageUrl,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      console.log("✅ 襪子已儲存，ID:", sockData.id);
+      setSockId(sockData.id);
       setShowCanvas(false);
+      setShowLetter(true);
+      setLoading(false);
     } catch (err: any) {
       console.error("❌ 儲存失敗:", err);
+      setError(`儲存失敗: ${err.message}`);
+      setLoading(false);
+    }
+  };
+
+  // Letter 完成
+  const handleLetterComplete = async (messageYearEnd: string, messageFuture: string) => {
+    setLoading(true);
+    
+    try {
+      console.log("💌 更新信件內容...");
+
+      if (!sockId) {
+        throw new Error("找不到襪子 ID");
+      }
+
+      // 更新 Supabase socks 資料
+      const { error: updateError } = await supabase
+        .from('socks')
+        .update({
+          message_year_end: messageYearEnd,
+          message_future: messageFuture,
+        })
+        .eq('id', sockId);
+
+      if (updateError) throw updateError;
+
+      console.log("✅ 信件已儲存！");
+      alert("你的聖誕襪和祝福已經完成了！🎄");
+      setShowLetter(false);
+      setLoading(false);
+    } catch (err: any) {
+      console.error("❌ 儲存信件失敗:", err);
       setError(`儲存失敗: ${err.message}`);
       setLoading(false);
     }
@@ -226,7 +275,8 @@ export default function App() {
   console.log("🎨 準備渲染，當前狀態:", { 
     isLoggedIn, 
     hasProfile, 
-    showCanvas, 
+    showCanvas,
+    showLetter,
     loading,
     awaitingVerification,
     error: error ? "有錯誤" : "無"
@@ -307,6 +357,12 @@ export default function App() {
         onFinish={handleCanvasFinish}
       />
     );
+  }
+
+  // 顯示信件頁面
+  if (showLetter) {
+    console.log("✅ 渲染: LetterPage");
+    return <LetterPage onComplete={handleLetterComplete} />;
   }
 
   console.log("⚠️ 沒有匹配的渲染條件！");
