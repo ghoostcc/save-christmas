@@ -13,7 +13,8 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
   userColor,
   onFinish,
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const baseCanvasRef = useRef<HTMLCanvasElement>(null);
+  const drawCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentColor, setCurrentColor] = useState(userColor);
   const [brushSize, setBrushSize] = useState(5);
@@ -23,21 +24,25 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
 
   // 初始化 canvas
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const baseCanvas = baseCanvasRef.current;
+    const drawCanvas = drawCanvasRef.current;
+    if (!baseCanvas || !drawCanvas) return;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const baseCtx = baseCanvas.getContext("2d");
+    const drawCtx = drawCanvas.getContext("2d");
+    if (!baseCtx || !drawCtx) return;
 
-    // 設置 canvas 尺寸
-    canvas.width = 600;
-    canvas.height = 600;
+    // 設置 canvas 尺寸 - 調寬一些讓襪子更胖
+    baseCanvas.width = 700;
+    baseCanvas.height = 700;
+    drawCanvas.width = 700;
+    drawCanvas.height = 700;
 
-    // 載入聖誕襪模板
+    // 載入聖誕襪模板到底層 canvas
     const sockImg = new Image();
     sockImg.src = "/sock.png";
     sockImg.onload = () => {
-      ctx.drawImage(sockImg, 0, 0, canvas.width, canvas.height);
+      baseCtx.drawImage(sockImg, 0, 0, baseCanvas.width, baseCanvas.height);
     };
   }, []);
 
@@ -51,7 +56,7 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing && e.type !== "mousedown" && e.type !== "touchstart") return;
 
-    const canvas = canvasRef.current;
+    const canvas = drawCanvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
@@ -98,28 +103,34 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
 
   // 清空畫布（重作）
   const clearCanvas = () => {
-    const canvas = canvasRef.current;
+    const canvas = drawCanvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // 重新載入聖誕襪模板
-    const sockImg = new Image();
-    sockImg.src = "/sock.png";
-    sockImg.onload = () => {
-      ctx.drawImage(sockImg, 0, 0, canvas.width, canvas.height);
-    };
   };
 
-  // 完成繪製
+  // 完成繪製 - 合併兩層 canvas
   const handleFinish = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const baseCanvas = baseCanvasRef.current;
+    const drawCanvas = drawCanvasRef.current;
+    if (!baseCanvas || !drawCanvas) return;
 
-    const imageDataUrl = canvas.toDataURL("image/png");
+    // 創建臨時 canvas 來合併
+    const mergedCanvas = document.createElement('canvas');
+    mergedCanvas.width = baseCanvas.width;
+    mergedCanvas.height = baseCanvas.height;
+    const mergedCtx = mergedCanvas.getContext('2d');
+    if (!mergedCtx) return;
+
+    // 先畫底層（襪子模板）
+    mergedCtx.drawImage(baseCanvas, 0, 0);
+    // 再畫繪製層
+    mergedCtx.drawImage(drawCanvas, 0, 0);
+
+    const imageDataUrl = mergedCanvas.toDataURL("image/png");
     onFinish(imageDataUrl);
   };
 
@@ -144,25 +155,43 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
         overflow: "hidden",
       }}
     >
-      {/* 畫布區域 */}
-      <canvas
-        ref={canvasRef}
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseLeave={stopDrawing}
-        onTouchStart={startDrawing}
-        onTouchMove={draw}
-        onTouchEnd={stopDrawing}
-        style={{
-          border: "3px solid #fff",
-          borderRadius: "15px",
-          cursor: tool === "brush" ? "crosshair" : "pointer",
-          maxWidth: "90vw",
-          maxHeight: "60vh",
-          touchAction: "none",
-        }}
-      />
+      {/* 畫布區域 - 雙層結構 */}
+      <div style={{ position: "relative" }}>
+        {/* 底層：襪子模板 */}
+        <canvas
+          ref={baseCanvasRef}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            border: "3px solid #fff",
+            borderRadius: "15px",
+            maxWidth: "90vw",
+            maxHeight: "60vh",
+            pointerEvents: "none",
+          }}
+        />
+        {/* 繪製層 */}
+        <canvas
+          ref={drawCanvasRef}
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={stopDrawing}
+          onMouseLeave={stopDrawing}
+          onTouchStart={startDrawing}
+          onTouchMove={draw}
+          onTouchEnd={stopDrawing}
+          style={{
+            position: "relative",
+            border: "3px solid #fff",
+            borderRadius: "15px",
+            cursor: tool === "brush" ? "crosshair" : "pointer",
+            maxWidth: "90vw",
+            maxHeight: "60vh",
+            touchAction: "none",
+          }}
+        />
+      </div>
 
       {/* 工具列 */}
       <div

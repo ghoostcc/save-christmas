@@ -42,18 +42,18 @@ const LetterPage: React.FC<LetterPageProps> = ({ onComplete }) => {
         boxSizing: "border-box",
       }}
     >
-      {/* 信紙容器 */}
+      {/* 信紙容器 - 放大尺寸 */}
       <div
         style={{
           position: "relative",
           width: "100%",
-          maxWidth: "500px",
-          minHeight: "650px",
+          maxWidth: "700px",
+          minHeight: "850px",
           backgroundImage: "url('/letter.png')",
           backgroundSize: "contain",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          padding: "100px 60px 80px 60px",
+          padding: isMobile ? "120px 60px 100px 60px" : "140px 80px 120px 80px",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -65,34 +65,34 @@ const LetterPage: React.FC<LetterPageProps> = ({ onComplete }) => {
           style={{
             width: "100%",
             color: "#8B4513",
-            fontSize: "13px",
-            lineHeight: "1.7",
-            marginBottom: "15px",
+            fontSize: isMobile ? "14px" : "15px",
+            lineHeight: "1.8",
+            marginBottom: "20px",
             textAlign: "left",
             fontFamily: "'Noto Sans TC', sans-serif",
           }}
         >
-          <p style={{ margin: "0 0 8px 0", fontWeight: "bold" }}>Hohoho～</p>
-          <p style={{ margin: "0 0 8px 0", fontSize: "12px" }}>
+          <p style={{ margin: "0 0 10px 0", fontWeight: "bold" }}>Hohoho～</p>
+          <p style={{ margin: "0 0 10px 0" }}>
             聖誕節是最靠近一年結尾，也是最貼近新一年起點的時刻呢！
           </p>
-          <p style={{ margin: "0 0 8px 0", fontSize: "12px" }}>
+          <p style={{ margin: "0 0 10px 0" }}>
             我們一起掛上了聖誕襪，為聖誕樹集滿點燈的能量
           </p>
-          <p style={{ margin: "0 0 6px 0", fontSize: "12px" }}>最後邀請你</p>
-          <p style={{ margin: "0 0 15px 0", fontSize: "12px" }}>
+          <p style={{ margin: "0 0 8px 0" }}>最後邀請你</p>
+          <p style={{ margin: "0 0 20px 0" }}>
             給今年的自己、和明年的自己各說一句話，或是偷偷許個願！
           </p>
         </div>
 
         {/* 今年的我 */}
-        <div style={{ width: "100%", marginBottom: "15px" }}>
+        <div style={{ width: "100%", marginBottom: "20px" }}>
           <label
             style={{
               display: "block",
               color: "#8B4513",
-              fontSize: "13px",
-              marginBottom: "6px",
+              fontSize: isMobile ? "14px" : "15px",
+              marginBottom: "8px",
               fontWeight: "600",
             }}
           >
@@ -105,9 +105,9 @@ const LetterPage: React.FC<LetterPageProps> = ({ onComplete }) => {
             disabled={isLoading}
             style={{
               width: "100%",
-              minHeight: "60px",
-              padding: "8px",
-              fontSize: "12px",
+              minHeight: "80px",
+              padding: "12px",
+              fontSize: isMobile ? "13px" : "14px",
               border: "1px dashed #D2691E",
               borderRadius: "5px",
               backgroundColor: "rgba(255, 250, 240, 0.9)",
@@ -120,13 +120,13 @@ const LetterPage: React.FC<LetterPageProps> = ({ onComplete }) => {
         </div>
 
         {/* 明年的我 */}
-        <div style={{ width: "100%", marginBottom: "15px" }}>
+        <div style={{ width: "100%", marginBottom: "20px" }}>
           <label
             style={{
               display: "block",
               color: "#8B4513",
-              fontSize: "13px",
-              marginBottom: "6px",
+              fontSize: isMobile ? "14px" : "15px",
+              marginBottom: "8px",
               fontWeight: "600",
             }}
           >
@@ -139,9 +139,9 @@ const LetterPage: React.FC<LetterPageProps> = ({ onComplete }) => {
             disabled={isLoading}
             style={{
               width: "100%",
-              minHeight: "60px",
-              padding: "8px",
-              fontSize: "12px",
+              minHeight: "80px",
+              padding: "12px",
+              fontSize: isMobile ? "13px" : "14px",
               border: "1px dashed #D2691E",
               borderRadius: "5px",
               backgroundColor: "rgba(255, 250, 240, 0.9)",
@@ -158,8 +158,8 @@ const LetterPage: React.FC<LetterPageProps> = ({ onComplete }) => {
           style={{
             width: "100%",
             color: "#8B4513",
-            fontSize: "11px",
-            marginBottom: "20px",
+            fontSize: isMobile ? "12px" : "13px",
+            marginBottom: "25px",
             textAlign: "left",
             fontStyle: "italic",
           }}
