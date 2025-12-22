@@ -1,69 +1,96 @@
 import { useState } from "react";
 
-interface LetterPageProps {
+type LetterPageProps = {
   onComplete: (messageYearEnd: string, messageFuture: string) => void;
-}
+};
 
 export default function LetterPage({ onComplete }: LetterPageProps) {
-  const [yearMessage, setYearMessage] = useState("");
-  const [futureMessage, setFutureMessage] = useState("");
+  const [yearEnd, setYearEnd] = useState("");
+  const [future, setFuture] = useState("");
 
   const handleSend = () => {
-    if (!yearMessage.trim() || !futureMessage.trim()) {
-      alert("請完成兩段文字再送出唷 🎄");
+    if (!yearEnd.trim() || !future.trim()) {
+      alert("請把兩段話都寫完喔 🎄");
       return;
     }
-    onComplete(yearMessage, futureMessage);
+
+    onComplete(yearEnd, future);
   };
 
   return (
-    <div className="letter-page">
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        backgroundImage: "url('/letterbackground.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
       {/* 信紙 */}
-      <div className="letter-paper">
-        <div className="letter-content">
-          <p>Hohoho～</p>
-          <p>
-            聖誕節是最靠近一年結尾，也是最貼近新一年起點的時刻呢！
-            <br />
-            我們一起掛上了聖誕襪，為聖誕樹集滿點燈的能量
-          </p>
-          <p>
-            最後邀請你
-            <br />
-            給今年的自己、和明年的自己各說一句話，或是偷偷許個願！
-          </p>
+      <div
+        style={{
+          width: "360px",
+          height: "600px",
+          backgroundImage: "url('/letter.png')",
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          padding: "80px 30px 140px",
+          boxSizing: "border-box",
+          color: "#333",
+        }}
+      >
+        <p>Hohoho～</p>
 
-          <div className="field">
-            <label>今年的我：</label>
-            <textarea
-              value={yearMessage}
-              onChange={(e) => setYearMessage(e.target.value)}
-              placeholder="寫給今年努力過的自己…"
-            />
-          </div>
+        <p style={{ fontSize: "14px", lineHeight: 1.6 }}>
+          聖誕節是最靠近一年結尾，也是最貼近新一年起點的時刻呢！
+          <br />
+          最後請你，給今年的自己，和明年的自己各說一句話。
+        </p>
 
-          <div className="field">
-            <label>明年的我：</label>
-            <textarea
-              value={futureMessage}
-              onChange={(e) => setFutureMessage(e.target.value)}
-              placeholder="寫給未來的自己…"
-            />
-          </div>
+        <label>今年的我：</label>
+        <textarea
+          value={yearEnd}
+          onChange={(e) => setYearEnd(e.target.value)}
+          placeholder="寫給今年努力過的自己..."
+          style={{
+            width: "100%",
+            height: "60px",
+            marginBottom: "12px",
+          }}
+        />
 
-          <p className="ps">
-            P.S 聖誕節可是最容易讓奇蹟悄悄降臨的日子呢～Hohoho！
-          </p>
-        </div>
+        <label>明年的我：</label>
+        <textarea
+          value={future}
+          onChange={(e) => setFuture(e.target.value)}
+          placeholder="寫給未來的自己..."
+          style={{
+            width: "100%",
+            height: "60px",
+          }}
+        />
+
+        {/* Send Button */}
+        <div
+          onClick={handleSend}
+          style={{
+            marginTop: "30px",
+            width: "160px",
+            height: "70px",
+            backgroundImage: "url('/sendButton.png')",
+            backgroundSize: "contain",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            cursor: "pointer",
+            marginLeft: "auto",
+            marginRight: "auto",
+          }}
+        />
       </div>
-
-      {/* 送出按鈕 */}
-      <img
-        src="/sendButton.png"
-        alt="Send Letter"
-        className="send-button"
-        onClick={handleSend}
-      />
     </div>
   );
 }
