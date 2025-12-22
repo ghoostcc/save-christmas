@@ -7,7 +7,7 @@ import LetterPage from "./LetterPage";
 import { supabase } from "./supabaseClient";
 
 // Cloudinary 設定
-const CLOUDINARY_CLOUD_NAME = "dycwc1hge";
+const CLOUDINARY_CLOUD_NAME = "dycwclhge";
 const CLOUDINARY_UPLOAD_PRESET = "save_christmas_sock";
 
 export default function App() {
@@ -62,31 +62,6 @@ export default function App() {
       console.log("✅ 已登入, userId:", session.user.id);
       setUserId(session.user.id);
       setUserEmail(session.user.email || "");
-      setIsLoggedIn(true);
-
-      // 檢查是否有 profile
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
-
-      if (profile) {
-        console.log("✅ 找到 profile:", profile);
-        setUserName(profile.name);
-        setUserColor(profile.color);
-        setHasProfile(true);
-      } else {
-        console.log("❌ 沒有 profile，需要設定");
-        setHasProfile(false);
-      }
-
-      setLoading(false);
-    } catch (err) {
-      console.error("❌ 檢查認證錯誤:", err);
-      setLoading(false);
-    }
-  };
       setIsLoggedIn(true);
 
       // 檢查是否有 profile
@@ -192,14 +167,6 @@ export default function App() {
       setUserColor(color);
       setHasProfile(true);
       setLoading(false);
-      
-      // Debug: 印出狀態
-      console.log("📊 Profile 完成後的狀態:", {
-        isLoggedIn: true,
-        hasProfile: true,
-        showCanvas: false,
-        loading: false
-      });
     } catch (err: any) {
       console.error("❌ 儲存錯誤:", err);
       setError(`儲存失敗: ${err.message}`);
@@ -235,7 +202,7 @@ export default function App() {
 
       console.log("✅ 圖片上傳成功:", imageUrl);
 
-      // 儲存到 Supabase (只存 user_email 和 image_url)
+      // 儲存到 Supabase
       const { data: sockData, error: insertError } = await supabase
         .from('socks')
         .insert({
@@ -292,22 +259,8 @@ export default function App() {
     }
   };
 
-  // ========== 渲染邏輯 ==========
-  
-  // Debug: 每次渲染都印出當前狀態
-  console.log("🎨 準備渲染，當前狀態:", { 
-    isLoggedIn, 
-    hasProfile, 
-    showCanvas,
-    showLetter,
-    loading,
-    awaitingVerification,
-    error: error ? "有錯誤" : "無"
-  });
-
   // Loading 畫面
   if (loading) {
-    console.log("✅ 渲染: Loading");
     return (
       <div style={{ width: "100vw", height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#1a472a" }}>
         <div style={{ color: "white", fontSize: "24px" }}>載入中...</div>
@@ -317,7 +270,6 @@ export default function App() {
 
   // Error 畫面
   if (error) {
-    console.log("✅ 渲染: Error");
     return (
       <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", backgroundColor: "#1a472a", padding: "20px" }}>
         <div style={{ color: "red", fontSize: "20px", marginBottom: "20px", textAlign: "center" }}>{error}</div>
@@ -330,13 +282,11 @@ export default function App() {
 
   // 未登入 - 顯示登入頁
   if (!isLoggedIn && !awaitingVerification) {
-    console.log("✅ 渲染: Login");
     return <Login onEmailSubmit={handleEmailLogin} />;
   }
 
   // 等待驗證碼
   if (awaitingVerification) {
-    console.log("✅ 渲染: VerifyCode");
     return (
       <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", backgroundColor: "#1a472a", color: "white", padding: "20px", textAlign: "center" }}>
         <h1 style={{ fontSize: "32px", marginBottom: "20px" }}>🔑 輸入驗證碼</h1>
@@ -359,19 +309,16 @@ export default function App() {
 
   // 已登入但沒有 profile - 顯示設定頁
   if (isLoggedIn && !hasProfile) {
-    console.log("✅ 渲染: ProfileSetup");
     return <ProfileSetup onComplete={handleProfileComplete} />;
   }
 
   // 已登入且有 profile，但還沒開始繪製 - 顯示 Start 畫面
-  if (isLoggedIn && hasProfile && !showCanvas) {
-    console.log("✅ 渲染: StartScreen");
+  if (isLoggedIn && hasProfile && !showCanvas && !showLetter) {
     return <StartScreen onStart={handleStart} />;
   }
 
   // 顯示畫布
   if (showCanvas) {
-    console.log("✅ 渲染: CanvasDrawing");
     return (
       <CanvasDrawing
         userEmail={userEmail}
@@ -384,10 +331,8 @@ export default function App() {
 
   // 顯示信件頁面
   if (showLetter) {
-    console.log("✅ 渲染: LetterPage");
     return <LetterPage onComplete={handleLetterComplete} />;
   }
 
-  console.log("⚠️ 沒有匹配的渲染條件！");
   return null;
 }
