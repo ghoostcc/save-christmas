@@ -1,21 +1,13 @@
 import React, { useRef, useState, useEffect } from "react";
 
 type CanvasDrawingProps = {
-  userEmail: string;
-  userName: string;
-  userColor: string;
   onFinish: (imageDataUrl: string) => void;
 };
 
-const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
-  userEmail: _userEmail,
-  userName: _userName,
-  userColor,
-  onFinish,
-}) => {
+const CanvasDrawing: React.FC<CanvasDrawingProps> = ({ onFinish }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [currentColor, setCurrentColor] = useState(userColor);
+  const [currentColor, setCurrentColor] = useState("#000000");
   const [brushSize, setBrushSize] = useState(5);
   const [tool, setTool] = useState<"brush" | "eraser">("brush");
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -29,7 +21,6 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // 設置 canvas 尺寸
     canvas.width = 600;
     canvas.height = 600;
 
@@ -96,7 +87,7 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
     setIsDrawing(false);
   };
 
-  // 清空畫布（重作）
+  // 清空畫布
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -106,7 +97,6 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 重新載入聖誕襪模板
     const sockImg = new Image();
     sockImg.src = "/sock.png";
     sockImg.onload = () => {
@@ -144,7 +134,7 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
         overflow: "hidden",
       }}
     >
-      {/* 畫布區域 */}
+      {/* 畫布 */}
       <div
         style={{
           position: "relative",
@@ -204,10 +194,9 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
           <span style={{ fontSize: "12px", color: "#333" }}>{brushSize}px</span>
         </div>
 
-        {/* 分隔線 */}
         <div style={{ width: "1px", height: "50px", backgroundColor: "#ddd" }} />
 
-        {/* 筆刷工具 */}
+        {/* 筆刷 */}
         <button
           onClick={() => setTool("brush")}
           style={{
@@ -218,11 +207,7 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
             backgroundColor: tool === "brush" ? "#e8f5e9" : "#fff",
             cursor: "pointer",
             fontSize: "24px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
           }}
-          title="筆刷"
         >
           🖌️
         </button>
@@ -238,19 +223,14 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
             backgroundColor: tool === "eraser" ? "#e8f5e9" : "#fff",
             cursor: "pointer",
             fontSize: "24px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
           }}
-          title="橡皮擦"
         >
           🧹
         </button>
 
-        {/* 分隔線 */}
         <div style={{ width: "1px", height: "50px", backgroundColor: "#ddd" }} />
 
-        {/* 顏色選擇器 */}
+        {/* 顏色 */}
         <div style={{ position: "relative" }}>
           <button
             onClick={() => setShowColorPicker(!showColorPicker)}
@@ -261,84 +241,34 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
               border: "3px solid #fff",
               backgroundColor: currentColor,
               cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
             }}
-            title="選擇顏色"
           />
           {showColorPicker && (
-            <div
-              style={{
-                position: "absolute",
-                bottom: "60px",
-                left: "50%",
-                transform: "translateX(-50%)",
-                backgroundColor: "#fff",
-                padding: "10px",
-                borderRadius: "10px",
-                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
-              }}
-            >
-              <input
-                type="color"
-                value={currentColor}
-                onChange={(e) => setCurrentColor(e.target.value)}
-                style={{
-                  width: "150px",
-                  height: "150px",
-                  border: "none",
-                  borderRadius: "10px",
-                  cursor: "pointer",
-                }}
-              />
-            </div>
+            <input
+              type="color"
+              value={currentColor}
+              onChange={(e) => setCurrentColor(e.target.value)}
+              style={{ width: "120px", height: "120px" }}
+            />
           )}
         </div>
 
-        {/* 重作 */}
-        <button
-          onClick={clearCanvas}
-          style={{
-            width: "50px",
-            height: "50px",
-            borderRadius: "50%",
-            border: "2px solid #ddd",
-            backgroundColor: "#fff",
-            cursor: "pointer",
-            fontSize: "24px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-          title="重新繪製"
-        >
+        <button onClick={clearCanvas} style={{ fontSize: "22px", cursor: "pointer" }}>
           🔄
         </button>
 
-        {/* 分隔線 */}
-        <div style={{ width: "1px", height: "50px", backgroundColor: "#ddd" }} />
-
-        {/* Finish 按鈕 */}
         <button
           onClick={handleFinish}
           style={{
             width: "120px",
             height: "50px",
             backgroundImage: "url('/finishButton.png')",
-            backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
-            backgroundPosition: "center",
+            backgroundSize: "contain",
             backgroundColor: "transparent",
             border: "none",
             cursor: "pointer",
-            transition: "transform 0.1s ease",
           }}
-          onMouseDown={(e) => {
-            e.currentTarget.style.transform = "scale(0.95)";
-          }}
-          onMouseUp={(e) => {
-            e.currentTarget.style.transform = "scale(1)";
-          }}
-          title="完成"
         />
       </div>
     </div>
