@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import Login from "./Login";
 import ProfileSetup from "./ProfileSetup";
 import StartScreen from "./StartScreen";
@@ -6,264 +6,388 @@ import CanvasDrawing from "./CanvasDrawing";
 import LetterPage from "./LetterPage";
 import { supabase } from "./supabaseClient";
 
-/* ========= Cloudinary ========= */
-const CLOUDINARY_CLOUD_NAME = "dycwclhge";
+// Cloudinary 設定
+const CLOUDINARY_CLOUD_NAME = "dycwc1hge";
 const CLOUDINARY_UPLOAD_PRESET = "save_christmas_sock";
 
 export default function App() {
-  /* ========= auth / flow ========= */
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [awaitingVerification, setAwaitingVerification] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-
   const [hasProfile, setHasProfile] = useState(false);
   const [showCanvas, setShowCanvas] = useState(false);
   const [showLetter, setShowLetter] = useState(false);
-
-  /* ========= user ========= */
-  const [userId, setUserId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const [userEmail, setUserEmail] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
-
-  /* ========= sock ========= */
+  const [userId, setUserId] = useState("");
+  const [userName, setUserName] = useState("");
+  const [userColor, setUserColor] = useState("");
   const [sockId, setSockId] = useState<number | null>(null);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [awaitingVerification, setAwaitingVerification] = useState(false);
 
-  /* ========= init ========= */
+  // 初始化：檢查用戶登入狀態
   useEffect(() => {
+    console.log("🚀 App 初始化");
     checkAuth();
 
-    const { data } = supabase.auth.onAuthStateChange(() => {
-      checkAuth();
-    });
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log("🔔 Auth event:", event);
+        if (event === "SIGNED_IN" && session) {
+          await checkAuth();
+        } else if (event === "SIGNED_OUT") {
+          resetToLogin();
+        }
+      }
+    );
 
     return () => {
-      data.subscription.unsubscribe();
+      authListener.subscription.unsubscribe();
     };
   }, []);
 
-  /* ========= auth check ========= */
   const checkAuth = async () => {
-    setLoading(true);
+    try {
+      console.log("🔍 檢查認證狀態...");
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log("❌ 未登入");
+        resetToLogin();
+        return;
+      }
 
-    const { data } = await supabase.auth.getSession();
-    const session = data.session;
+      console.log("✅ 已登入, userId:", session.user.id);
+      setUserId(session.user.id);
+      setUserEmail(session.user.email || "");
+      setIsLoggedIn(true);
 
-    if (!session) {
-      resetAll();
+      // 檢查是否有 profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (profile) {
+        console.log("✅ 找到 profile:", profile);
+        setUserName(profile.name);
+        setUserColor(profile.color);
+        setHasProfile(true);
+      } else {
+        console.log("❌ 沒有 profile，需要設定");
+        setHasProfile(false);
+      }
+
       setLoading(false);
-      return;
+    } catch (err) {
+      console.error("❌ 檢查認證錯誤:", err);
+      setLoading(false);
     }
+  };
+      setIsLoggedIn(true);
 
-    setIsLoggedIn(true);
-    setUserId(session.user.id);
-    setUserEmail(session.user.email || "");
+      // 檢查是否有 profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", session.user.id)
-      .single();
+      if (profile) {
+        console.log("✅ 找到 profile:", profile);
+        setUserName(profile.name);
+        setUserColor(profile.color);
+        setHasProfile(true);
+      } else {
+        console.log("❌ 沒有 profile，需要設定");
+        setHasProfile(false);
+      }
 
-    setHasProfile(!!profile);
-    setLoading(false);
+      setLoading(false);
+    } catch (err) {
+      console.error("❌ 檢查認證錯誤:", err);
+      setLoading(false);
+    }
   };
 
-  const resetAll = () => {
+  const resetToLogin = () => {
     setIsLoggedIn(false);
-    setAwaitingVerification(false);
     setHasProfile(false);
     setShowCanvas(false);
     setShowLetter(false);
-    setSockId(null);
+    setLoading(false);
   };
 
-  /* ========= login ========= */
+  // 登入處理
   const handleEmailLogin = async (email: string) => {
     setLoading(true);
     setError(null);
     setUserEmail(email);
+    
+    try {
+      const { error: signInError } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: { shouldCreateUser: true },
+      });
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: true },
-    });
+      if (signInError) throw signInError;
 
-    if (error) {
-      setError(error.message);
-    } else {
+      console.log("✅ 驗證碼已發送");
       setAwaitingVerification(true);
+      setLoading(false);
+    } catch (err: any) {
+      console.error("❌ 登入錯誤:", err);
+      setError(err.message);
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  const handleVerifyCode = async () => {
+  // 驗證碼處理
+  const handleVerifyCode = async (code: string) => {
     setIsVerifying(true);
     setError(null);
 
-    const { error } = await supabase.auth.verifyOtp({
-      email: userEmail,
-      token: verificationCode,
-      type: "email",
-    });
+    try {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email: userEmail,
+        token: code,
+        type: 'email',
+      });
 
-    if (error) {
+      if (verifyError) throw verifyError;
+
+      console.log("✅ 驗證成功");
+      setAwaitingVerification(false);
+      await checkAuth();
+    } catch (err: any) {
+      console.error("❌ 驗證錯誤:", err);
       setError("驗證碼錯誤");
       setIsVerifying(false);
-      return;
     }
-
-    setAwaitingVerification(false);
-    await checkAuth();
   };
 
-  /* ========= profile ========= */
+  // Profile 設定完成
   const handleProfileComplete = async (name: string, color: string) => {
     setLoading(true);
+    
+    try {
+      console.log("💾 儲存 profile...");
+      
+      const { error: insertError } = await supabase
+        .from("profiles")
+        .insert({
+          id: userId,
+          email: userEmail,
+          name: name,
+          color: color,
+        });
 
-    const { error } = await supabase.from("profiles").insert({
-      id: userId,
-      email: userEmail,
-      name,
-      color,
-    });
+      if (insertError) throw insertError;
 
-    if (error) {
-      setError(error.message);
-    } else {
+      console.log("✅ Profile 儲存成功");
+      setUserName(name);
+      setUserColor(color);
       setHasProfile(true);
+      setLoading(false);
+      
+      // Debug: 印出狀態
+      console.log("📊 Profile 完成後的狀態:", {
+        isLoggedIn: true,
+        hasProfile: true,
+        showCanvas: false,
+        loading: false
+      });
+    } catch (err: any) {
+      console.error("❌ 儲存錯誤:", err);
+      setError(`儲存失敗: ${err.message}`);
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  /* ========= flow ========= */
+  // Start 按鈕
   const handleStart = () => {
+    console.log("▶️ 開始繪製");
     setShowCanvas(true);
   };
 
-  /* ========= canvas finish ========= */
+  // Canvas 完成
   const handleCanvasFinish = async (imageDataUrl: string) => {
     setLoading(true);
-    setError(null);
-
+    
     try {
-      /* upload to cloudinary */
+      console.log("📤 上傳圖片到 Cloudinary...");
+      
+      // 上傳到 Cloudinary
       const formData = new FormData();
-      formData.append("file", imageDataUrl);
-      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+      formData.append('file', imageDataUrl);
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
-      const res = await fetch(
+      const response = await fetch(
         `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-        { method: "POST", body: formData }
+        { method: 'POST', body: formData }
       );
 
-      const json = await res.json();
-      if (!json.secure_url) throw new Error("Cloudinary 上傳失敗");
+      const data = await response.json();
+      const imageUrl = data.secure_url;
 
-      /* insert socks (只存必要欄位) */
-      const { data, error } = await supabase
-        .from("socks")
+      console.log("✅ 圖片上傳成功:", imageUrl);
+
+      // 儲存到 Supabase (只存 user_email 和 image_url)
+      const { data: sockData, error: insertError } = await supabase
+        .from('socks')
         .insert({
           user_email: userEmail,
-          image_url: json.secure_url,
+          image_url: imageUrl,
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
-      setSockId(data.id);
+      console.log("✅ 襪子已儲存，ID:", sockData.id);
+      setSockId(sockData.id);
       setShowCanvas(false);
       setShowLetter(true);
+      setLoading(false);
     } catch (err: any) {
-      setError(err.message);
+      console.error("❌ 儲存失敗:", err);
+      setError(`儲存失敗: ${err.message}`);
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  /* ========= letter finish ========= */
-  const handleLetterComplete = async (
-    messageYearEnd: string,
-    messageFuture: string
-  ) => {
-    if (!sockId) return;
-
+  // Letter 完成
+  const handleLetterComplete = async (messageYearEnd: string, messageFuture: string) => {
     setLoading(true);
+    
+    try {
+      console.log("💌 更新信件內容...");
 
-    const { error } = await supabase
-      .from("socks")
-      .update({
-        message_year_end: messageYearEnd,
-        message_future: messageFuture,
-      })
-      .eq("id", sockId);
+      if (!sockId) {
+        throw new Error("找不到襪子 ID");
+      }
 
-    if (error) {
-      setError(error.message);
-    } else {
-      alert("🎄 聖誕襪與信件完成！");
-      resetAll();
+      // 更新 Supabase socks 資料
+      const { error: updateError } = await supabase
+        .from('socks')
+        .update({
+          message_year_end: messageYearEnd,
+          message_future: messageFuture,
+        })
+        .eq('id', sockId);
+
+      if (updateError) throw updateError;
+
+      console.log("✅ 信件已儲存！");
+      alert("你的聖誕襪和祝福已經完成了！🎄");
+      setShowLetter(false);
+      setLoading(false);
+    } catch (err: any) {
+      console.error("❌ 儲存信件失敗:", err);
+      setError(`儲存失敗: ${err.message}`);
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  /* ========= render ========= */
-  if (loading) {
-    return (
-      <div style={{ color: "white", textAlign: "center" }}>載入中...</div>
-    );
-  }
+  // ========== 渲染邏輯 ==========
+  
+  // Debug: 每次渲染都印出當前狀態
+  console.log("🎨 準備渲染，當前狀態:", { 
+    isLoggedIn, 
+    hasProfile, 
+    showCanvas,
+    showLetter,
+    loading,
+    awaitingVerification,
+    error: error ? "有錯誤" : "無"
+  });
 
-  if (error) {
+  // Loading 畫面
+  if (loading) {
+    console.log("✅ 渲染: Loading");
     return (
-      <div style={{ color: "red", textAlign: "center" }}>
-        {error}
-        <br />
-        <button onClick={resetAll}>返回登入</button>
+      <div style={{ width: "100vw", height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "#1a472a" }}>
+        <div style={{ color: "white", fontSize: "24px" }}>載入中...</div>
       </div>
     );
   }
 
-  if (!isLoggedIn && !awaitingVerification) {
-    return <Login onEmailSubmit={handleEmailLogin} />;
-  }
-
-  if (awaitingVerification) {
+  // Error 畫面
+  if (error) {
+    console.log("✅ 渲染: Error");
     return (
-      <div style={{ textAlign: "center", color: "white" }}>
-        <h2>🔑 輸入驗證碼</h2>
-        <input
-          value={verificationCode}
-          onChange={(e) => setVerificationCode(e.target.value)}
-        />
-        <button onClick={handleVerifyCode} disabled={isVerifying}>
-          驗證
+      <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", backgroundColor: "#1a472a", padding: "20px" }}>
+        <div style={{ color: "red", fontSize: "20px", marginBottom: "20px", textAlign: "center" }}>{error}</div>
+        <button onClick={() => { setError(null); resetToLogin(); }} style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "5px" }}>
+          返回登入
         </button>
       </div>
     );
   }
 
+  // 未登入 - 顯示登入頁
+  if (!isLoggedIn && !awaitingVerification) {
+    console.log("✅ 渲染: Login");
+    return <Login onEmailSubmit={handleEmailLogin} />;
+  }
+
+  // 等待驗證碼
+  if (awaitingVerification) {
+    console.log("✅ 渲染: VerifyCode");
+    return (
+      <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", backgroundColor: "#1a472a", color: "white", padding: "20px", textAlign: "center" }}>
+        <h1 style={{ fontSize: "32px", marginBottom: "20px" }}>🔑 輸入驗證碼</h1>
+        <p style={{ fontSize: "18px", marginBottom: "30px" }}>已發送到：{userEmail}</p>
+        <input
+          type="text"
+          inputMode="numeric"
+          value={verificationCode}
+          onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+          placeholder="請輸入驗證碼"
+          disabled={isVerifying}
+          style={{ width: "320px", padding: "15px", fontSize: "24px", textAlign: "center", letterSpacing: "4px", border: "2px solid #ddd", borderRadius: "10px", marginBottom: "20px", color: "#333" }}
+        />
+        <button onClick={() => handleVerifyCode(verificationCode)} disabled={isVerifying || verificationCode.length < 6} style={{ padding: "12px 40px", fontSize: "18px", cursor: verificationCode.length >= 6 ? "pointer" : "not-allowed", backgroundColor: verificationCode.length >= 6 ? "#4CAF50" : "#ccc", color: "white", border: "none", borderRadius: "5px", fontWeight: "bold" }}>
+          {isVerifying ? "驗證中..." : "驗證"}
+        </button>
+      </div>
+    );
+  }
+
+  // 已登入但沒有 profile - 顯示設定頁
   if (isLoggedIn && !hasProfile) {
+    console.log("✅ 渲染: ProfileSetup");
     return <ProfileSetup onComplete={handleProfileComplete} />;
   }
 
-  if (isLoggedIn && hasProfile && !showCanvas && !showLetter) {
+  // 已登入且有 profile，但還沒開始繪製 - 顯示 Start 畫面
+  if (isLoggedIn && hasProfile && !showCanvas) {
+    console.log("✅ 渲染: StartScreen");
     return <StartScreen onStart={handleStart} />;
   }
 
+  // 顯示畫布
   if (showCanvas) {
-    return <CanvasDrawing onFinish={handleCanvasFinish} />;
+    console.log("✅ 渲染: CanvasDrawing");
+    return (
+      <CanvasDrawing
+        userEmail={userEmail}
+        userName={userName}
+        userColor={userColor}
+        onFinish={handleCanvasFinish}
+      />
+    );
   }
 
+  // 顯示信件頁面
   if (showLetter) {
+    console.log("✅ 渲染: LetterPage");
     return <LetterPage onComplete={handleLetterComplete} />;
   }
 
+  console.log("⚠️ 沒有匹配的渲染條件！");
   return null;
 }
