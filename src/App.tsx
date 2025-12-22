@@ -6,8 +6,8 @@ import CanvasDrawing from "./CanvasDrawing";
 import LetterPage from "./LetterPage";
 import { supabase } from "./supabaseClient";
 
-// Cloudinary 設定
-const CLOUDINARY_CLOUD_NAME = "dycwc1hge";
+// ✅ Cloudinary 設定（已確認正確）
+const CLOUDINARY_CLOUD_NAME = "dycwclhge";
 const CLOUDINARY_UPLOAD_PRESET = "save_christmas_sock";
 
 export default function App() {
@@ -25,19 +25,18 @@ export default function App() {
   const [sockId, setSockId] = useState<number | null>(null);
 
   const [verificationCode, setVerificationCode] = useState("");
-  const [isVerifying, setIsVerifying] = useState(false);
   const [awaitingVerification, setAwaitingVerification] = useState(false);
 
-  /* ================= 初始化 ================= */
-
+  // ========= 初始化登入狀態 =========
   useEffect(() => {
     checkAuth();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === "SIGNED_IN" && session) {
+      async (event) => {
+        if (event === "SIGNED_IN") {
           await checkAuth();
-        } else if (event === "SIGNED_OUT") {
+        }
+        if (event === "SIGNED_OUT") {
           resetToLogin();
         }
       }
@@ -47,15 +46,6 @@ export default function App() {
       authListener.subscription.unsubscribe();
     };
   }, []);
-
-  const resetToLogin = () => {
-    setIsLoggedIn(false);
-    setHasProfile(false);
-    setShowCanvas(false);
-    setShowLetter(false);
-    setAwaitingVerification(false);
-    setLoading(false);
-  };
 
   const checkAuth = async () => {
     try {
@@ -68,9 +58,9 @@ export default function App() {
         return;
       }
 
+      setIsLoggedIn(true);
       setUserId(session.user.id);
       setUserEmail(session.user.email || "");
-      setIsLoggedIn(true);
 
       const { data: profile } = await supabase
         .from("profiles")
@@ -87,13 +77,22 @@ export default function App() {
       }
 
       setLoading(false);
-    } catch {
+    } catch (err) {
+      console.error(err);
       setLoading(false);
     }
   };
 
-  /* ================= Login ================= */
+  const resetToLogin = () => {
+    setIsLoggedIn(false);
+    setHasProfile(false);
+    setShowCanvas(false);
+    setShowLetter(false);
+    setAwaitingVerification(false);
+    setLoading(false);
+  };
 
+  // ========= Email 登入 =========
   const handleEmailLogin = async (email: string) => {
     setLoading(true);
     setError(null);
@@ -115,8 +114,8 @@ export default function App() {
     }
   };
 
+  // ========= 驗證碼 =========
   const handleVerifyCode = async (code: string) => {
-    setIsVerifying(true);
     setError(null);
 
     try {
@@ -132,13 +131,10 @@ export default function App() {
       await checkAuth();
     } catch {
       setError("驗證碼錯誤");
-    } finally {
-      setIsVerifying(false);
     }
   };
 
-  /* ================= Profile ================= */
-
+  // ========= Profile =========
   const handleProfileComplete = async (name: string, color: string) => {
     setLoading(true);
 
@@ -162,35 +158,35 @@ export default function App() {
     }
   };
 
-  /* ================= Canvas ================= */
-
+  // ========= Start =========
   const handleStart = () => {
     setShowCanvas(true);
   };
 
+  // ========= Canvas Finish =========
   const handleCanvasFinish = async (imageDataUrl: string) => {
     setLoading(true);
+    setError(null);
 
     try {
-      // ✅ base64 → Blob（關鍵修正）
-      const blob = await fetch(imageDataUrl).then((res) => res.blob());
-
       const formData = new FormData();
-      formData.append("file", blob);
+      formData.append("file", imageDataUrl);
       formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
-      const response = await fetch(
+      const res = await fetch(
         `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-        { method: "POST", body: formData }
+        {
+          method: "POST",
+          body: formData,
+        }
       );
 
-      const data = await response.json();
-
+      const data = await res.json();
       if (!data.secure_url) {
         throw new Error("Cloudinary 上傳失敗");
       }
 
-      const { data: sockData, error } = await supabase
+      const { data: sock, error } = await supabase
         .from("socks")
         .insert({
           user_email: userEmail,
@@ -203,29 +199,26 @@ export default function App() {
 
       if (error) throw error;
 
-      setSockId(sockData.id);
-
-      // ✅ 成功後才切換頁面
+      setSockId(sock.id);
       setShowCanvas(false);
       setShowLetter(true);
+      setLoading(false);
     } catch (err: any) {
-      setError(`儲存失敗: ${err.message}`);
-    } finally {
+      setError(err.message);
       setLoading(false);
     }
   };
 
-  /* ================= Letter ================= */
-
+  // ========= Letter =========
   const handleLetterComplete = async (
     messageYearEnd: string,
     messageFuture: string
   ) => {
-    if (!sockId) return;
-
     setLoading(true);
 
     try {
+      if (!sockId) throw new Error("找不到襪子 ID");
+
       const { error } = await supabase
         .from("socks")
         .update({
@@ -236,26 +229,50 @@ export default function App() {
 
       if (error) throw error;
 
-      alert("你的聖誕襪和祝福已經完成了！🎄");
+      alert("完成囉 🎄");
       setShowLetter(false);
+      setLoading(false);
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   };
 
-  /* ================= Render ================= */
-
+  // ========= Render =========
   if (loading) {
-    return <div style={{ color: "white" }}>載入中...</div>;
+    return (
+      <div
+        style={{
+          width: "100vw",
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          background: "#1a472a",
+          color: "#fff",
+          fontSize: "24px",
+        }}
+      >
+        載入中...
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div style={{ color: "red" }}>
-        {error}
-        <br />
+      <div
+        style={{
+          width: "100vw",
+          height: "100vh",
+          background: "#1a472a",
+          color: "red",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <p>{error}</p>
         <button onClick={resetToLogin}>返回登入</button>
       </div>
     );
@@ -267,16 +284,28 @@ export default function App() {
 
   if (awaitingVerification) {
     return (
-      <div>
+      <div
+        style={{
+          width: "100vw",
+          height: "100vh",
+          background: "#1a472a",
+          color: "#fff",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <h2>輸入驗證碼</h2>
+        <p>{userEmail}</p>
         <input
           value={verificationCode}
-          onChange={(e) => setVerificationCode(e.target.value)}
+          onChange={(e) =>
+            setVerificationCode(e.target.value.replace(/\D/g, ""))
+          }
         />
-        <button
-          onClick={() => handleVerifyCode(verificationCode)}
-          disabled={isVerifying}
-        >
-          {isVerifying ? "驗證中..." : "驗證"}
+        <button onClick={() => handleVerifyCode(verificationCode)}>
+          驗證
         </button>
       </div>
     );
@@ -286,7 +315,6 @@ export default function App() {
     return <ProfileSetup onComplete={handleProfileComplete} />;
   }
 
-  // ✅ 關鍵：避免 StartScreen 抢渲染
   if (isLoggedIn && hasProfile && !showCanvas && !showLetter) {
     return <StartScreen onStart={handleStart} />;
   }
