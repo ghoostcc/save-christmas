@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Login from "./Login";
 import ProfileSetup from "./ProfileSetup";
 import StartScreen from "./StartScreen";
@@ -6,274 +6,226 @@ import CanvasDrawing from "./CanvasDrawing";
 import LetterPage from "./LetterPage";
 import { supabase } from "./supabaseClient";
 
-// ✅ Cloudinary 設定（已確認正確）
+/* ========= Cloudinary ========= */
 const CLOUDINARY_CLOUD_NAME = "dycwclhge";
 const CLOUDINARY_UPLOAD_PRESET = "save_christmas_sock";
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [hasProfile, setHasProfile] = useState(false);
-  const [showCanvas, setShowCanvas] = useState(false);
-  const [showLetter, setShowLetter] = useState(false);
+  /* ========= auth / flow ========= */
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [userEmail, setUserEmail] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [awaitingVerification, setAwaitingVerification] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  const [hasProfile, setHasProfile] = useState(false);
+  const [showCanvas, setShowCanvas] = useState(false);
+  const [showLetter, setShowLetter] = useState(false);
+
+  /* ========= user ========= */
   const [userId, setUserId] = useState("");
-  const [userName, setUserName] = useState("");
-  const [userColor, setUserColor] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+
+  /* ========= sock ========= */
   const [sockId, setSockId] = useState<number | null>(null);
 
-  const [verificationCode, setVerificationCode] = useState("");
-  const [awaitingVerification, setAwaitingVerification] = useState(false);
-
-  // ========= 初始化登入狀態 =========
+  /* ========= init ========= */
   useEffect(() => {
     checkAuth();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event) => {
-        if (event === "SIGNED_IN") {
-          await checkAuth();
-        }
-        if (event === "SIGNED_OUT") {
-          resetToLogin();
-        }
-      }
-    );
+    const { data } = supabase.auth.onAuthStateChange(() => {
+      checkAuth();
+    });
 
     return () => {
-      authListener.subscription.unsubscribe();
+      data.subscription.unsubscribe();
     };
   }, []);
 
+  /* ========= auth check ========= */
   const checkAuth = async () => {
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    setLoading(true);
 
-      if (!session) {
-        resetToLogin();
-        return;
-      }
+    const { data } = await supabase.auth.getSession();
+    const session = data.session;
 
-      setIsLoggedIn(true);
-      setUserId(session.user.id);
-      setUserEmail(session.user.email || "");
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
-
-      if (profile) {
-        setUserName(profile.name);
-        setUserColor(profile.color);
-        setHasProfile(true);
-      } else {
-        setHasProfile(false);
-      }
-
+    if (!session) {
+      resetAll();
       setLoading(false);
-    } catch (err) {
-      console.error(err);
-      setLoading(false);
+      return;
     }
-  };
 
-  const resetToLogin = () => {
-    setIsLoggedIn(false);
-    setHasProfile(false);
-    setShowCanvas(false);
-    setShowLetter(false);
-    setAwaitingVerification(false);
+    setIsLoggedIn(true);
+    setUserId(session.user.id);
+    setUserEmail(session.user.email || "");
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", session.user.id)
+      .single();
+
+    setHasProfile(!!profile);
     setLoading(false);
   };
 
-  // ========= Email 登入 =========
+  const resetAll = () => {
+    setIsLoggedIn(false);
+    setAwaitingVerification(false);
+    setHasProfile(false);
+    setShowCanvas(false);
+    setShowLetter(false);
+    setSockId(null);
+  };
+
+  /* ========= login ========= */
   const handleEmailLogin = async (email: string) => {
     setLoading(true);
     setError(null);
     setUserEmail(email);
 
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: true },
-      });
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true },
+    });
 
-      if (error) throw error;
-
+    if (error) {
+      setError(error.message);
+    } else {
       setAwaitingVerification(true);
-      setLoading(false);
-    } catch (err: any) {
-      setError(err.message);
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
-  // ========= 驗證碼 =========
-  const handleVerifyCode = async (code: string) => {
+  const handleVerifyCode = async () => {
+    setIsVerifying(true);
     setError(null);
 
-    try {
-      const { error } = await supabase.auth.verifyOtp({
-        email: userEmail,
-        token: code,
-        type: "email",
-      });
+    const { error } = await supabase.auth.verifyOtp({
+      email: userEmail,
+      token: verificationCode,
+      type: "email",
+    });
 
-      if (error) throw error;
-
-      setAwaitingVerification(false);
-      await checkAuth();
-    } catch {
+    if (error) {
       setError("驗證碼錯誤");
+      setIsVerifying(false);
+      return;
     }
+
+    setAwaitingVerification(false);
+    await checkAuth();
   };
 
-  // ========= Profile =========
+  /* ========= profile ========= */
   const handleProfileComplete = async (name: string, color: string) => {
     setLoading(true);
 
-    try {
-      const { error } = await supabase.from("profiles").insert({
-        id: userId,
-        email: userEmail,
-        name,
-        color,
-      });
+    const { error } = await supabase.from("profiles").insert({
+      id: userId,
+      email: userEmail,
+      name,
+      color,
+    });
 
-      if (error) throw error;
-
-      setUserName(name);
-      setUserColor(color);
+    if (error) {
+      setError(error.message);
+    } else {
       setHasProfile(true);
-      setLoading(false);
-    } catch (err: any) {
-      setError(err.message);
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
-  // ========= Start =========
+  /* ========= flow ========= */
   const handleStart = () => {
     setShowCanvas(true);
   };
 
-  // ========= Canvas Finish =========
+  /* ========= canvas finish ========= */
   const handleCanvasFinish = async (imageDataUrl: string) => {
     setLoading(true);
     setError(null);
 
     try {
+      /* upload to cloudinary */
       const formData = new FormData();
       formData.append("file", imageDataUrl);
       formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
       const res = await fetch(
         `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
+        { method: "POST", body: formData }
       );
 
-      const data = await res.json();
-      if (!data.secure_url) {
-        throw new Error("Cloudinary 上傳失敗");
-      }
+      const json = await res.json();
+      if (!json.secure_url) throw new Error("Cloudinary 上傳失敗");
 
-      const { data: sock, error } = await supabase
+      /* insert socks (只存必要欄位) */
+      const { data, error } = await supabase
         .from("socks")
         .insert({
           user_email: userEmail,
-          sock_name: userName,
-          color_hex: userColor,
-          image_url: data.secure_url,
+          image_url: json.secure_url,
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      setSockId(sock.id);
+      setSockId(data.id);
       setShowCanvas(false);
       setShowLetter(true);
-      setLoading(false);
     } catch (err: any) {
       setError(err.message);
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
-  // ========= Letter =========
+  /* ========= letter finish ========= */
   const handleLetterComplete = async (
     messageYearEnd: string,
     messageFuture: string
   ) => {
+    if (!sockId) return;
+
     setLoading(true);
 
-    try {
-      if (!sockId) throw new Error("找不到襪子 ID");
+    const { error } = await supabase
+      .from("socks")
+      .update({
+        message_year_end: messageYearEnd,
+        message_future: messageFuture,
+      })
+      .eq("id", sockId);
 
-      const { error } = await supabase
-        .from("socks")
-        .update({
-          message_year_end: messageYearEnd,
-          message_future: messageFuture,
-        })
-        .eq("id", sockId);
-
-      if (error) throw error;
-
-      alert("完成囉 🎄");
-      setShowLetter(false);
-      setLoading(false);
-    } catch (err: any) {
-      setError(err.message);
-      setLoading(false);
+    if (error) {
+      setError(error.message);
+    } else {
+      alert("🎄 聖誕襪與信件完成！");
+      resetAll();
     }
+
+    setLoading(false);
   };
 
-  // ========= Render =========
+  /* ========= render ========= */
   if (loading) {
     return (
-      <div
-        style={{
-          width: "100vw",
-          height: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          background: "#1a472a",
-          color: "#fff",
-          fontSize: "24px",
-        }}
-      >
-        載入中...
-      </div>
+      <div style={{ color: "white", textAlign: "center" }}>載入中...</div>
     );
   }
 
   if (error) {
     return (
-      <div
-        style={{
-          width: "100vw",
-          height: "100vh",
-          background: "#1a472a",
-          color: "red",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <p>{error}</p>
-        <button onClick={resetToLogin}>返回登入</button>
+      <div style={{ color: "red", textAlign: "center" }}>
+        {error}
+        <br />
+        <button onClick={resetAll}>返回登入</button>
       </div>
     );
   }
@@ -284,27 +236,13 @@ export default function App() {
 
   if (awaitingVerification) {
     return (
-      <div
-        style={{
-          width: "100vw",
-          height: "100vh",
-          background: "#1a472a",
-          color: "#fff",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <h2>輸入驗證碼</h2>
-        <p>{userEmail}</p>
+      <div style={{ textAlign: "center", color: "white" }}>
+        <h2>🔑 輸入驗證碼</h2>
         <input
           value={verificationCode}
-          onChange={(e) =>
-            setVerificationCode(e.target.value.replace(/\D/g, ""))
-          }
+          onChange={(e) => setVerificationCode(e.target.value)}
         />
-        <button onClick={() => handleVerifyCode(verificationCode)}>
+        <button onClick={handleVerifyCode} disabled={isVerifying}>
           驗證
         </button>
       </div>
@@ -320,14 +258,7 @@ export default function App() {
   }
 
   if (showCanvas) {
-    return (
-      <CanvasDrawing
-        userEmail={userEmail}
-        userName={userName}
-        userColor={userColor}
-        onFinish={handleCanvasFinish}
-      />
-    );
+    return <CanvasDrawing onFinish={handleCanvasFinish} />;
   }
 
   if (showLetter) {
