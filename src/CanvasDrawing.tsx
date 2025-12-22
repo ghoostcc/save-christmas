@@ -1,36 +1,27 @@
 import React, { useRef, useState, useEffect } from "react";
 
 type CanvasDrawingProps = {
+  userEmail: string;
+  userName: string;
+  userColor: string;
   onFinish: (imageDataUrl: string) => void;
 };
 
-const CanvasDrawing: React.FC<CanvasDrawingProps> = ({ onFinish }) => {
+const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
+  userEmail: _userEmail,
+  userName: _userName,
+  userColor,
+  onFinish,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [currentColor, setCurrentColor] = useState("#000000");
+  const [currentColor, setCurrentColor] = useState(userColor);
   const [brushSize, setBrushSize] = useState(5);
   const [tool, setTool] = useState<"brush" | "eraser">("brush");
   const [showColorPicker, setShowColorPicker] = useState(false);
   const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
 
-  /** 🔒 套用襪子遮罩（只能畫在襪子裡） */
-  const applySockClip = (ctx: CanvasRenderingContext2D) => {
-    ctx.save();
-    ctx.beginPath();
-
-    // ⚠️ 這是一個「襪子內部」近似遮罩
-    ctx.moveTo(250, 130);
-    ctx.lineTo(350, 170);
-    ctx.lineTo(360, 400);
-    ctx.lineTo(300, 520);
-    ctx.lineTo(200, 460);
-    ctx.lineTo(190, 200);
-    ctx.closePath();
-
-    ctx.clip();
-  };
-
-  /** 初始化 canvas */
+  // 初始化 canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -38,23 +29,25 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({ onFinish }) => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // 設置 canvas 尺寸
     canvas.width = 600;
     canvas.height = 600;
 
+    // 載入聖誕襪模板
     const sockImg = new Image();
     sockImg.src = "/sock.png";
     sockImg.onload = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(sockImg, 0, 0, canvas.width, canvas.height);
-      applySockClip(ctx);
     };
   }, []);
 
+  // 開始繪製
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDrawing(true);
     draw(e);
   };
 
+  // 繪製
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing && e.type !== "mousedown" && e.type !== "touchstart") return;
 
@@ -65,10 +58,15 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({ onFinish }) => {
     if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
-    const clientX =
-      "touches" in e ? e.touches[0].clientX : e.clientX;
-    const clientY =
-      "touches" in e ? e.touches[0].clientY : e.clientY;
+    let clientX: number, clientY: number;
+
+    if ("touches" in e) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
 
     const x = ((clientX - rect.left) / rect.width) * canvas.width;
     const y = ((clientY - rect.top) / rect.height) * canvas.height;
@@ -93,9 +91,12 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({ onFinish }) => {
     }
   };
 
-  const stopDrawing = () => setIsDrawing(false);
+  // 停止繪製
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
 
-  /** 重作（仍保留襪子限制） */
+  // 清空畫布（重作）
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -103,35 +104,47 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({ onFinish }) => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 重新載入聖誕襪模板
     const sockImg = new Image();
     sockImg.src = "/sock.png";
     sockImg.onload = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(sockImg, 0, 0, canvas.width, canvas.height);
-      applySockClip(ctx);
     };
   };
 
+  // 完成繪製
   const handleFinish = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    onFinish(canvas.toDataURL("image/png"));
+
+    const imageDataUrl = canvas.toDataURL("image/png");
+    onFinish(imageDataUrl);
   };
 
   return (
     <div
       style={{
         position: "fixed",
-        inset: 0,
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
         backgroundImage: isMobile
           ? "url('/canva-mobile.png')"
           : "url('/canva.png')",
         backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
         display: "flex",
+        flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
+        overflow: "hidden",
       }}
     >
+      {/* 畫布區域 */}
       <canvas
         ref={canvasRef}
         onMouseDown={startDrawing}
@@ -142,8 +155,11 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({ onFinish }) => {
         onTouchMove={draw}
         onTouchEnd={stopDrawing}
         style={{
-          border: "3px solid white",
-          borderRadius: "16px",
+          border: "3px solid #fff",
+          borderRadius: "15px",
+          cursor: tool === "brush" ? "crosshair" : "pointer",
+          maxWidth: "90vw",
+          maxHeight: "60vh",
           touchAction: "none",
         }}
       />
@@ -152,49 +168,141 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({ onFinish }) => {
       <div
         style={{
           position: "absolute",
-          bottom: 30,
-          background: "white",
-          padding: "12px 20px",
-          borderRadius: 40,
+          bottom: "30px",
           display: "flex",
-          gap: 12,
+          gap: "15px",
           alignItems: "center",
+          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          padding: "15px 25px",
+          borderRadius: "50px",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
         }}
       >
-        <input
-          type="range"
-          min={1}
-          max={20}
-          value={brushSize}
-          onChange={(e) => setBrushSize(+e.target.value)}
-        />
-
-        <button onClick={() => setTool("brush")}>🖌️</button>
-        <button onClick={() => setTool("eraser")}>🧹</button>
-
-        <button
-          onClick={() => setShowColorPicker(!showColorPicker)}
-          style={{ background: currentColor, width: 30, height: 30 }}
-        />
-
-        {showColorPicker && (
+        {/* 筆刷大小 */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "5px" }}>
+          <label style={{ fontSize: "12px", color: "#666" }}>筆刷</label>
           <input
-            type="color"
-            value={currentColor}
-            onChange={(e) => setCurrentColor(e.target.value)}
+            type="range"
+            min="1"
+            max="20"
+            value={brushSize}
+            onChange={(e) => setBrushSize(Number(e.target.value))}
+            style={{ width: "80px" }}
           />
-        )}
+          <span style={{ fontSize: "12px", color: "#333" }}>{brushSize}px</span>
+        </div>
 
-        <button onClick={clearCanvas}>🔄</button>
+        {/* 分隔線 */}
+        <div style={{ width: "1px", height: "50px", backgroundColor: "#ddd" }} />
 
+        {/* 筆刷工具 */}
+        <button
+          onClick={() => setTool("brush")}
+          style={{
+            width: "50px",
+            height: "50px",
+            borderRadius: "50%",
+            border: tool === "brush" ? "3px solid #4CAF50" : "2px solid #ddd",
+            backgroundColor: tool === "brush" ? "#e8f5e9" : "#fff",
+            cursor: "pointer",
+            fontSize: "24px",
+          }}
+        >
+          🖌️
+        </button>
+
+        {/* 橡皮擦 */}
+        <button
+          onClick={() => setTool("eraser")}
+          style={{
+            width: "50px",
+            height: "50px",
+            borderRadius: "50%",
+            border: tool === "eraser" ? "3px solid #4CAF50" : "2px solid #ddd",
+            backgroundColor: tool === "eraser" ? "#e8f5e9" : "#fff",
+            cursor: "pointer",
+            fontSize: "24px",
+          }}
+        >
+          🧹
+        </button>
+
+        {/* 分隔線 */}
+        <div style={{ width: "1px", height: "50px", backgroundColor: "#ddd" }} />
+
+        {/* 顏色選擇器 */}
+        <div style={{ position: "relative" }}>
+          <button
+            onClick={() => setShowColorPicker(!showColorPicker)}
+            style={{
+              width: "50px",
+              height: "50px",
+              borderRadius: "50%",
+              border: "3px solid #fff",
+              backgroundColor: currentColor,
+              cursor: "pointer",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
+            }}
+          />
+          {showColorPicker && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: "60px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                backgroundColor: "#fff",
+                padding: "10px",
+                borderRadius: "10px",
+                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
+              }}
+            >
+              <input
+                type="color"
+                value={currentColor}
+                onChange={(e) => setCurrentColor(e.target.value)}
+                style={{
+                  width: "150px",
+                  height: "150px",
+                  border: "none",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* 重作 */}
+        <button
+          onClick={clearCanvas}
+          style={{
+            width: "50px",
+            height: "50px",
+            borderRadius: "50%",
+            border: "2px solid #ddd",
+            backgroundColor: "#fff",
+            cursor: "pointer",
+            fontSize: "24px",
+          }}
+        >
+          🔄
+        </button>
+
+        {/* 分隔線 */}
+        <div style={{ width: "1px", height: "50px", backgroundColor: "#ddd" }} />
+
+        {/* Finish 按鈕 */}
         <button
           onClick={handleFinish}
           style={{
-            width: 120,
-            height: 50,
+            width: "120px",
+            height: "50px",
             backgroundImage: "url('/finishButton.png')",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            backgroundColor: "transparent",
             border: "none",
             cursor: "pointer",
           }}
