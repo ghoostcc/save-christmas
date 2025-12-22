@@ -53,6 +53,7 @@ export default function App() {
     setHasProfile(false);
     setShowCanvas(false);
     setShowLetter(false);
+    setAwaitingVerification(false);
     setLoading(false);
   };
 
@@ -91,12 +92,12 @@ export default function App() {
     }
   };
 
-  /* ================= Login / Verify ================= */
+  /* ================= Login ================= */
 
   const handleEmailLogin = async (email: string) => {
     setLoading(true);
-    setUserEmail(email);
     setError(null);
+    setUserEmail(email);
 
     try {
       const { error } = await supabase.auth.signInWithOtp({
@@ -131,6 +132,7 @@ export default function App() {
       await checkAuth();
     } catch {
       setError("驗證碼錯誤");
+    } finally {
       setIsVerifying(false);
     }
   };
@@ -170,7 +172,7 @@ export default function App() {
     setLoading(true);
 
     try {
-      // ✅ 修正 1：base64 → Blob
+      // ✅ base64 → Blob（關鍵修正）
       const blob = await fetch(imageDataUrl).then((res) => res.blob());
 
       const formData = new FormData();
@@ -203,11 +205,10 @@ export default function App() {
 
       setSockId(sockData.id);
 
-      // ✅ 成功後才切頁
+      // ✅ 成功後才切換頁面
       setShowCanvas(false);
       setShowLetter(true);
     } catch (err: any) {
-      console.error(err);
       setError(`儲存失敗: ${err.message}`);
     } finally {
       setLoading(false);
@@ -271,8 +272,11 @@ export default function App() {
           value={verificationCode}
           onChange={(e) => setVerificationCode(e.target.value)}
         />
-        <button onClick={() => handleVerifyCode(verificationCode)}>
-          驗證
+        <button
+          onClick={() => handleVerifyCode(verificationCode)}
+          disabled={isVerifying}
+        >
+          {isVerifying ? "驗證中..." : "驗證"}
         </button>
       </div>
     );
@@ -282,7 +286,7 @@ export default function App() {
     return <ProfileSetup onComplete={handleProfileComplete} />;
   }
 
-  // ✅ 修正 2：避免搶渲染
+  // ✅ 關鍵：避免 StartScreen 抢渲染
   if (isLoggedIn && hasProfile && !showCanvas && !showLetter) {
     return <StartScreen onStart={handleStart} />;
   }
