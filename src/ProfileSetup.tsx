@@ -50,7 +50,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         <div
           style={{
             position: "absolute",
-            top: "346px",
+            top: "264px",
             left: "50%",
             transform: "translateX(-50%)",
             color: "#2d5016",
@@ -67,7 +67,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         <div
           style={{
             position: "absolute",
-            top: "425px",
+            top: "336px",
             left: "50%",
             transform: "translateX(-50%)",
             color: "#2d5016",
@@ -87,7 +87,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           disabled={isLoading}
           style={{
             position: "absolute",
-            top: "465px",
+            top: "376px",
             left: "50%",
             transform: "translateX(-50%)",
             width: "270px",
@@ -107,7 +107,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         <div
           style={{
             position: "absolute",
-            top: "537px",
+            top: "464px",
             left: "50%",
             transform: "translateX(-50%)",
             color: "#2d5016",
@@ -122,7 +122,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         <div
           style={{
             position: "absolute",
-            top: "578px",
+            top: "511px",
             left: "50%",
             transform: "translateX(-50%)",
             width: "100px",
@@ -153,7 +153,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           readOnly
           style={{
             position: "absolute",
-            top: "708px",
+            top: "638px",
             left: "50%",
             transform: "translateX(-50%)",
             width: "270px",
@@ -177,7 +177,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           disabled={isLoading}
           style={{
             position: "absolute",
-            top: "773px",
+            top: "694px",
             left: "50%",
             transform: "translateX(-50%)",
             width: "200px",
