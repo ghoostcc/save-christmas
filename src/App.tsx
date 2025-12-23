@@ -285,27 +285,29 @@ export default function App() {
     return <Login onEmailSubmit={handleEmailLogin} />;
   }
 
-  // 等待驗證碼
-  if (awaitingVerification) {
-    return (
-      <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", backgroundColor: "#1a472a", color: "white", padding: "20px", textAlign: "center" }}>
-        <h1 style={{ fontSize: "32px", marginBottom: "20px" }}>🔑 輸入驗證碼</h1>
-        <p style={{ fontSize: "18px", marginBottom: "30px" }}>已發送到：{userEmail}</p>
-        <input
-          type="text"
-          inputMode="numeric"
-          value={verificationCode}
-          onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
-          placeholder="請輸入驗證碼"
-          disabled={isVerifying}
-          style={{ width: "320px", padding: "15px", fontSize: "24px", textAlign: "center", letterSpacing: "4px", border: "2px solid #ddd", borderRadius: "10px", marginBottom: "20px", color: "#333" }}
-        />
-        <button onClick={() => handleVerifyCode(verificationCode)} disabled={isVerifying || verificationCode.length < 6} style={{ padding: "12px 40px", fontSize: "18px", cursor: verificationCode.length >= 6 ? "pointer" : "not-allowed", backgroundColor: verificationCode.length >= 6 ? "#4CAF50" : "#ccc", color: "white", border: "none", borderRadius: "5px", fontWeight: "bold" }}>
-          {isVerifying ? "驗證中..." : "驗證"}
-        </button>
-      </div>
-    );
-  }
+// 等待驗證碼
+if (awaitingVerification) {
+  return (
+    <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", backgroundColor: "#1a472a", color: "white", padding: "20px", textAlign: "center" }}>
+      <h1 style={{ fontSize: "32px", marginBottom: "20px" }}>🔑 輸入驗證碼</h1>
+      <p style={{ fontSize: "18px", marginBottom: "10px" }}>已發送到：{userEmail}</p>
+      <p style={{ fontSize: "14px", marginBottom: "30px", color: "#aad4b8" }}>如果收件匣沒收到，可以到垃圾信件看看</p>
+      <input
+        type="text"
+        inputMode="numeric"
+        value={verificationCode}
+        onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+        placeholder="請輸入驗證碼"
+        disabled={isVerifying}
+        maxLength={6}
+        style={{ width: "320px", padding: "15px", fontSize: "24px", textAlign: "center", letterSpacing: "8px", border: "2px solid #4CAF50", borderRadius: "10px", marginBottom: "20px", backgroundColor: "#ffffff", color: "#333", fontWeight: "600" }}
+      />
+      <button onClick={() => handleVerifyCode(verificationCode)} disabled={isVerifying || verificationCode.length < 6} style={{ padding: "12px 40px", fontSize: "18px", cursor: verificationCode.length >= 6 ? "pointer" : "not-allowed", backgroundColor: verificationCode.length >= 6 ? "#4CAF50" : "#ccc", color: "white", border: "none", borderRadius: "5px", fontWeight: "bold" }}>
+        {isVerifying ? "驗證中..." : "驗證"}
+      </button>
+    </div>
+  );
+}
 
   // 已登入但沒有 profile - 顯示設定頁
   if (isLoggedIn && !hasProfile) {

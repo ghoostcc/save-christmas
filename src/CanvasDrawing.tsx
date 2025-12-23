@@ -15,6 +15,7 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
 }) => {
   const baseCanvasRef = useRef<HTMLCanvasElement>(null);
   const drawCanvasRef = useRef<HTMLCanvasElement>(null);
+  const maskCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentColor, setCurrentColor] = useState(userColor);
   const [brushSize, setBrushSize] = useState(5);
@@ -26,25 +27,47 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
   useEffect(() => {
     const baseCanvas = baseCanvasRef.current;
     const drawCanvas = drawCanvasRef.current;
-    if (!baseCanvas || !drawCanvas) return;
+    const maskCanvas = maskCanvasRef.current;
+    if (!baseCanvas || !drawCanvas || !maskCanvas) return;
 
     const baseCtx = baseCanvas.getContext("2d");
     const drawCtx = drawCanvas.getContext("2d");
-    if (!baseCtx || !drawCtx) return;
+    const maskCtx = maskCanvas.getContext("2d");
+    if (!baseCtx || !drawCtx || !maskCtx) return;
 
-    // 設置 canvas 尺寸 - 調寬一些讓襪子更胖
-    baseCanvas.width = 700;
-    baseCanvas.height = 700;
-    drawCanvas.width = 700;
-    drawCanvas.height = 700;
+    // 設置 canvas 尺寸
+    const width = 700;
+    const height = 700;
+    baseCanvas.width = width;
+    baseCanvas.height = height;
+    drawCanvas.width = width;
+    drawCanvas.height = height;
+    maskCanvas.width = width;
+    maskCanvas.height = height;
 
-    // 載入聖誕襪模板到底層 canvas
+    // 載入聖誕襪模板到底層 canvas 和遮罩層
     const sockImg = new Image();
     sockImg.src = "/sock.png";
     sockImg.onload = () => {
-      baseCtx.drawImage(sockImg, 0, 0, baseCanvas.width, baseCanvas.height);
+      baseCtx.drawImage(sockImg, 0, 0, width, height);
+      
+      // 創建遮罩：將襪子形狀繪製到遮罩 canvas
+      maskCtx.drawImage(sockImg, 0, 0, width, height);
     };
   }, []);
+
+  // 檢查是否在襪子區域內（簡化版：檢查該點是否有顏色）
+  const isInsideSock = (x: number, y: number): boolean => {
+    const maskCanvas = maskCanvasRef.current;
+    if (!maskCanvas) return false;
+    
+    const maskCtx = maskCanvas.getContext("2d");
+    if (!maskCtx) return false;
+    
+    const imageData = maskCtx.getImageData(x, y, 1, 1);
+    // 如果 alpha 值大於 0，表示在襪子區域內
+    return imageData.data[3] > 0;
+  };
 
   // 開始繪製
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
@@ -75,6 +98,11 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
 
     const x = ((clientX - rect.left) / rect.width) * canvas.width;
     const y = ((clientY - rect.top) / rect.height) * canvas.height;
+
+    // 檢查是否在襪子區域內
+    if (!isInsideSock(Math.floor(x), Math.floor(y))) {
+      return;
+    }
 
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -155,7 +183,7 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
         overflow: "hidden",
       }}
     >
-      {/* 畫布區域 - 雙層結構 */}
+      {/* 畫布區域 - 三層結構 */}
       <div style={{ position: "relative" }}>
         {/* 底層：襪子模板 */}
         <canvas
@@ -169,6 +197,16 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
             maxWidth: "90vw",
             maxHeight: "60vh",
             pointerEvents: "none",
+          }}
+        />
+        {/* 遮罩層（不可見） */}
+        <canvas
+          ref={maskCanvasRef}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            display: "none",
           }}
         />
         {/* 繪製層 */}
@@ -205,6 +243,8 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
           padding: "15px 25px",
           borderRadius: "50px",
           boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
+          flexWrap: isMobile ? "wrap" : "nowrap",
+          justifyContent: "center",
         }}
       >
         {/* 筆刷大小 */}
