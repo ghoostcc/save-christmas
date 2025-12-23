@@ -63,10 +63,10 @@ const LetterPage: React.FC<LetterPageProps> = ({ onComplete }) => {
             position: "absolute",
 
             /* ⭐ 微調這四個數字即可 */
-            left: "14%",
+            left: "24%",
             top: "44%",
-            width: "72%",
-            height: "9%",
+            width: "330px",
+            height: "54px",
 
             backgroundColor: "transparent",
             border: "none",
@@ -94,10 +94,10 @@ const LetterPage: React.FC<LetterPageProps> = ({ onComplete }) => {
             position: "absolute",
 
             /* ⭐ 微調這四個數字即可 */
-            left: "14%",
-            top: "56%",
-            width: "72%",
-            height: "9%",
+            left: "24%",
+            top: "54%",
+            width: "330px",
+            height: "54px",
 
             backgroundColor: "transparent",
             border: "none",
@@ -124,11 +124,11 @@ const LetterPage: React.FC<LetterPageProps> = ({ onComplete }) => {
             position: "absolute",
 
             /* ⭐ 對齊圖中的 SEND LETTER */
-            left: "50%",
-            bottom: "7%",
+            left: "49%",
+            bottom: "20%",
             transform: "translateX(-50%)",
 
-            width: "26%",
+            width: "24%",
             height: "10%",
 
             backgroundColor: "transparent",
