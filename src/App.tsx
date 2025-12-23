@@ -228,8 +228,6 @@ export default function App() {
 
   // Letter 完成
   const handleLetterComplete = async (messageYearEnd: string, messageFuture: string) => {
-    setLoading(true);
-    
     try {
       console.log("💌 更新信件內容...");
 
@@ -250,12 +248,15 @@ export default function App() {
 
       console.log("✅ 信件已儲存！");
       alert("你的聖誕襪和祝福已經完成了！🎄");
+      
+      // 重置狀態回到開始畫面
       setShowLetter(false);
-      setLoading(false);
+      setSockId(null);
+      
     } catch (err: any) {
       console.error("❌ 儲存信件失敗:", err);
-      setError(`儲存失敗: ${err.message}`);
-      setLoading(false);
+      alert(`儲存失敗: ${err.message}`);
+      setShowLetter(false);
     }
   };
 
