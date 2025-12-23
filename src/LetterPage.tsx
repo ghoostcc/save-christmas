@@ -95,7 +95,7 @@ const LetterPage: React.FC<LetterPageProps> = ({ onComplete }) => {
 
             /* ⭐ 微調這四個數字即可 */
             left: "24%",
-            top: "54%",
+            top: "55%",
             width: "330px",
             height: "54px",
 
