@@ -16,8 +16,8 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
         width: "100%",
         height: "100%",
         backgroundImage: isMobile
-          ? "url('/mainnoDraw-mobile.png')"
-          : "url('/mainnoDraw.png')",
+          ? "url('/start-mobile.png')"
+          : "url('/start.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -27,43 +27,46 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
         overflow: "hidden",
       }}
     >
-      {/* START 按鈕 - 放在藍圖的綠色框框位置 */}
-      <button
-        type="button"
-        onClick={onStart}
+      {/* Start 按鈕容器 - 放在紅色框內 */}
+      <div
         style={{
           position: "absolute",
-          top: "35%",
-          right: "35%",
-          width: "180px",
-          height: "80px",
-          backgroundImage: "url('/drawstartButton.png')",
-          backgroundSize: "contain",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center",
-          backgroundColor: "transparent",
-          border: "none",
-          cursor: "pointer",
-          transition: "transform 0.1s ease",
-          outline: "none",
+          top: isMobile ? "12%" : "15%",
+          right: isMobile ? "8%" : "12%",
+          width: isMobile ? "180px" : "220px",
+          height: isMobile ? "120px" : "150px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
         }}
-        onMouseDown={(e) => {
-          e.currentTarget.style.transform = "scale(0.95)";
-        }}
-        onMouseUp={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-        }}
-        onTouchStart={(e) => {
-          e.currentTarget.style.transform = "scale(0.95)";
-        }}
-        onTouchEnd={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-        }}
-        aria-label="開始繪製"
-      />
+      >
+        <button
+          onClick={onStart}
+          style={{
+            width: isMobile ? "140px" : "180px",
+            height: isMobile ? "70px" : "90px",
+            backgroundImage: "url('/startButton.png')",
+            backgroundSize: "contain",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            backgroundColor: "transparent",
+            border: "none",
+            cursor: "pointer",
+            transition: "transform 0.1s ease",
+            outline: "none",
+          }}
+          onMouseDown={(e) => {
+            e.currentTarget.style.transform = "scale(0.95)";
+          }}
+          onMouseUp={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+          }}
+          aria-label="開始"
+        />
+      </div>
     </div>
   );
 };
