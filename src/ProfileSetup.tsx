@@ -24,10 +24,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
     <div
       style={{
         position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
+        inset: 0,
         backgroundImage: isMobile
           ? "url('/profileMobile.png')"
           : "url('/profile.png')",
@@ -40,21 +37,20 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         overflow: "hidden",
       }}
     >
-      {/* 內容容器 - 整體往上 100px */}
+      {/* 內容容器（⚠️ 已移除 translateY） */}
       <div
         style={{
           position: "relative",
           width: "100%",
           maxWidth: "1440px",
           height: "100%",
-          transform: "translateY(-92px)", // ⭐ 重點在這
         }}
       >
-        {/* 標題 */}
+        {/* 歡迎 */}
         <div
           style={{
             position: "absolute",
-            top: "250px",
+            top: "346px",
             left: "50%",
             transform: "translateX(-50%)",
             color: "#2d5016",
@@ -67,11 +63,11 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           歡迎,來到電卡索聖誕村的小精靈
         </div>
 
-        {/* 第一個問題 */}
+        {/* 我該怎麼稱呼你 */}
         <div
           style={{
             position: "absolute",
-            top: "325px",
+            top: "425px",
             left: "50%",
             transform: "translateX(-50%)",
             color: "#2d5016",
@@ -82,7 +78,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           我該怎麼稱呼你呢?
         </div>
 
-        {/* 輸入框 */}
+        {/* 名字輸入框 */}
         <input
           type="text"
           value={name}
@@ -91,7 +87,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           disabled={isLoading}
           style={{
             position: "absolute",
-            top: "354px",
+            top: "465px",
             left: "50%",
             transform: "translateX(-50%)",
             width: "270px",
@@ -107,11 +103,11 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           }}
         />
 
-        {/* 第二個問題 */}
+        {/* 你喜歡甚麼顏色 */}
         <div
           style={{
             position: "absolute",
-            top: "442px",
+            top: "537px",
             left: "50%",
             transform: "translateX(-50%)",
             color: "#2d5016",
@@ -126,27 +122,27 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         <div
           style={{
             position: "absolute",
-            top: "480px",
+            top: "578px",
             left: "50%",
             transform: "translateX(-50%)",
-            width: "100px",     // ✅ 外層尺寸
+            width: "100px",
             height: "100px",
           }}
         >
           <input
-          type="color"
-          value={color}
-          onChange={(e) => setColor(e.target.value)}
-          disabled={isLoading}
-          style={{
-            width: "100px",   // ✅ 內層尺寸（一定要一樣）
-            height: "100px",
-            border: "none",
-            borderRadius: "50%",
-            cursor: "pointer",
-            appearance: "none",
-            padding: 0,
-          }}
+            type="color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            disabled={isLoading}
+            style={{
+              width: "100px",
+              height: "100px",
+              border: "none",
+              borderRadius: "50%",
+              cursor: "pointer",
+              appearance: "none",
+              padding: 0,
+            }}
           />
         </div>
 
@@ -157,7 +153,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           readOnly
           style={{
             position: "absolute",
-            top: "615px",
+            top: "708px",
             left: "50%",
             transform: "translateX(-50%)",
             width: "270px",
@@ -181,7 +177,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           disabled={isLoading}
           style={{
             position: "absolute",
-            top: "670px",
+            top: "773px",
             left: "50%",
             transform: "translateX(-50%)",
             width: "200px",
@@ -210,15 +206,6 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
             e.currentTarget.style.transform =
               "translateX(-50%) scale(1)";
           }}
-          onTouchStart={(e) => {
-            if (!isLoading)
-              e.currentTarget.style.transform =
-                "translateX(-50%) scale(0.95)";
-          }}
-          onTouchEnd={(e) => {
-            e.currentTarget.style.transform =
-              "translateX(-50%) scale(1)";
-          }}
           aria-label="繼續"
         />
 
@@ -238,6 +225,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
         )}
       </div>
 
+      {/* color input reset */}
       <style>{`
         input[type="color"] {
           -webkit-appearance: none;
@@ -248,17 +236,14 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
           cursor: pointer;
           padding: 0;
         }
-
         input[type="color"]::-webkit-color-swatch-wrapper {
           padding: 0;
           border: none;
         }
-
         input[type="color"]::-webkit-color-swatch {
           border: none;
           border-radius: 50%;
         }
-
         input[type="color"]::-moz-color-swatch {
           border: none;
           border-radius: 50%;
