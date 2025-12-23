@@ -43,7 +43,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
              * - 建議你先用 50% / 50% 讓它在正中間，確認能點，再慢慢對到設計稿位置
              */
             left: "50%",
-            top: "42%",
+            top: "38%",
             transform: "translate(-50%, -50%)",
 
             /**
