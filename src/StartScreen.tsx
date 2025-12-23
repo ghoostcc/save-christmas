@@ -5,102 +5,79 @@ type StartScreenProps = {
 };
 
 const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
-  const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
+  const isMobile =
+    typeof window !== "undefined" && window.innerWidth <= 768;
 
   return (
     <div
       style={{
         position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
+        inset: 0,
+        backgroundImage: isMobile
+          ? "url('/mainnoDraw-mobile.png')"
+          : "url('/mainnoDraw.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
         overflow: "hidden",
-        backgroundColor: "#FF9933",
-        backgroundImage: `
-          radial-gradient(circle at 20% 80%, rgba(255, 140, 0, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 80% 20%, rgba(255, 165, 0, 0.3) 0%, transparent 50%)
-        `,
       }}
     >
-      {/* 左下角壁爐 */}
+      {/* ✅ 用一個 overlay 當「定位層」：滿版、但不影響背景 */}
       <div
         style={{
           position: "absolute",
-          bottom: 0,
-          left: isMobile ? "5%" : "8%",
-          width: isMobile ? "120px" : "200px",
-          height: isMobile ? "140px" : "240px",
-          backgroundImage: "url('/fireplace.png')",
-          backgroundSize: "contain",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "bottom",
-        }}
-      />
-
-      {/* 右下角聖誕樹 */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          right: isMobile ? "5%" : "8%",
-          width: isMobile ? "150px" : "280px",
-          height: isMobile ? "200px" : "380px",
-          backgroundImage: "url('/christmas-tree.png')",
-          backgroundSize: "contain",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "bottom",
-        }}
-      />
-
-      {/* 中央藍圖 */}
-      <div
-        style={{
-          position: "relative",
-          width: isMobile ? "85%" : "600px",
-          height: isMobile ? "auto" : "500px",
-          aspectRatio: "1 / 1",
-          backgroundImage: "url('/blueprint.png')",
-          backgroundSize: "contain",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
+          inset: 0,
         }}
       >
-        {/* START 按鈕 - 放在紅框位置 */}
+        {/* ✅ START 按鈕（兩張圖版本的唯一互動元件） */}
         <button
+          type="button"
           onClick={onStart}
+          aria-label="開始繪製"
           style={{
             position: "absolute",
-            top: "20%",
-            right: "15%",
-            width: isMobile ? "100px" : "140px",
-            height: isMobile ? "50px" : "70px",
-            backgroundImage: "url('/startButton.png')",
+
+            /**
+             * ⭐ 只需要調這兩個數字：按鈕中心點的位置
+             * - left / top 是「相對螢幕」的百分比
+             * - 建議你先用 50% / 50% 讓它在正中間，確認能點，再慢慢對到設計稿位置
+             */
+            left: "50%",
+            top: "42%",
+            transform: "translate(-50%, -50%)",
+
+            /**
+             * ⭐ 按鈕大小：
+             * - 桌機用 clamp 讓它在不同螢幕尺寸自動縮放
+             * - 手機會自然變小
+             */
+            width: "clamp(180px, 32vw, 420px)",
+            aspectRatio: "630 / 260",
+            height: "auto",
+
+            backgroundImage: "url('/drawstartButton.png')",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center",
             backgroundColor: "transparent",
             border: "none",
+            padding: 0,
+
             cursor: "pointer",
-            transition: "transform 0.1s ease",
             outline: "none",
           }}
           onMouseDown={(e) => {
-            e.currentTarget.style.transform = "scale(0.95)";
+            e.currentTarget.style.transform =
+              "translate(-50%, -50%) scale(0.95)";
           }}
           onMouseUp={(e) => {
-            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.transform =
+              "translate(-50%, -50%) scale(1)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.transform =
+              "translate(-50%, -50%) scale(1)";
           }}
-          aria-label="開始"
         />
       </div>
     </div>
