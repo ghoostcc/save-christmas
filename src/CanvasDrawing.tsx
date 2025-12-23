@@ -59,25 +59,30 @@ const CanvasDrawing: React.FC<CanvasDrawingProps> = ({
       // 將襪子繪製到臨時 canvas
       tempCtx.drawImage(sockImg, 0, 0, width, height);
       
-      // 從圖片創建 Path2D - 使用掃描線演算法找出襪子區域
+      // 從圖片創建 Path2D - 檢測白色區域（非黑色邊框）
       const imageData = tempCtx.getImageData(0, 0, width, height);
       const data = imageData.data;
       const path = new Path2D();
       
-      // 逐行掃描，找出連續區域
+      // 逐行掃描，找出白色區域（襪子內部）
       for (let y = 0; y < height; y++) {
         let startX = -1;
         for (let x = 0; x < width; x++) {
           const idx = (y * width + x) * 4;
-          const alpha = data[idx + 3];
+          const r = data[idx];
+          const g = data[idx + 1];
+          const b = data[idx + 2];
+          const a = data[idx + 3];
           
-          if (alpha > 20) {
+          // 判斷是否為白色區域（非黑色邊框，非透明）
+          const isWhite = r > 200 && g > 200 && b > 200 && a > 200;
+          
+          if (isWhite) {
             if (startX === -1) {
-              startX = x; // 記錄起點
+              startX = x;
             }
           } else {
             if (startX !== -1) {
-              // 畫這一段
               path.rect(startX, y, x - startX, 1);
               startX = -1;
             }
