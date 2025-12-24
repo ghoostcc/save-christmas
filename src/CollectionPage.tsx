@@ -27,9 +27,11 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
     return () => window.removeEventListener("resize", update);
   }, []);
 
+  /** 進度燈（TS 不會再報錯） */
   const litProgress = Math.min(Math.floor(currentCount / 3), 10);
   const isComplete = currentCount >= 30;
 
+  /** 掉落動畫 */
   useEffect(() => {
     if (isFirstVisit && userSockImage) {
       setTimeout(() => {
@@ -46,40 +48,28 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
   }, [isFirstVisit, userSockImage, totalSocksCount]);
 
   return (
-    /* ===== 全螢幕外框 ===== */
     <div
       style={{
         position: "fixed",
         inset: 0,
+        backgroundImage: isMobile
+          ? "url('/mainDraw-mobile.png')"
+          : "url('/mainDraw.png')",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+        backgroundSize: "contain",
         backgroundColor: "#F3A21B",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
         overflow: "hidden",
       }}
     >
-      {/* ===== 固定比例舞台（關鍵）===== */}
+      {/* ================= 舞台安全區 ================= */}
       <div
         style={{
           position: "relative",
           width: "100%",
-          maxWidth: "1920px",
-          aspectRatio: "16 / 9",
+          height: "100vh",
         }}
       >
-        {/* 背景圖 */}
-        <img
-          src={isMobile ? "/mainDraw-mobile.png" : "/mainDraw.png"}
-          alt="background"
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-          }}
-        />
-
         {/* 左上照片 */}
         {["/happy1.png", "/happy2.png"].map((src, i) => (
           <div
@@ -87,10 +77,14 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
             style={{
               position: "absolute",
               left: "6%",
-              top: `${12 + i * 10}%`,
+              top: `${14 + i * 12}%`,
             }}
           >
-            <img src={src} style={{ width: 110 }} />
+            <img
+              src={src}
+              alt="photo"
+              style={{ width: isMobile ? 70 : 110, display: "block" }}
+            />
             <button
               onClick={() => setSelectedPhoto(src)}
               style={{
@@ -104,17 +98,18 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
           </div>
         ))}
 
-        {/* 中央襪子區 */}
+        {/* ================= 中央襪子舞台 ================= */}
         <div
           style={{
             position: "absolute",
-            top: "50%",
+            top: "45%",
             left: "50%",
-            width: "28%",
+            transform: "translate(-50%, -50%)",
+            width: isMobile ? 280 : 420,
             aspectRatio: "3 / 4",
-            transform: "translate(-50%, -55%)",
           }}
         >
+          {/* 大襪子 */}
           <div
             style={{
               position: "absolute",
@@ -126,13 +121,14 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
             }}
           />
 
+          {/* 數量 */}
           <div
             style={{
               position: "absolute",
-              top: "35%",
+              top: "38%",
               left: "50%",
               transform: "translateX(-50%)",
-              fontSize: 48,
+              fontSize: isMobile ? 32 : 48,
               fontWeight: 900,
               color: "#FF6347",
               textShadow: "3px 3px 6px rgba(0,0,0,0.8)",
@@ -141,50 +137,100 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
             {currentCount}/30
           </div>
 
+          {/* 掉落中 */}
           {showDropAnimation && animationPhase === "dropping" && userSockImage && (
             <img
               src={userSockImage}
+              alt="drop"
               style={{
                 position: "absolute",
-                top: "-20%",
+                top: "-120px",
                 left: "50%",
                 transform: "translateX(-50%)",
-                width: "20%",
+                width: isMobile ? 40 : 60,
                 animation: "dropSock 4s ease-in forwards",
+              }}
+            />
+          )}
+
+          {/* 掉落完成 */}
+          {animationPhase === "landed" && userSockImage && (
+            <img
+              src={userSockImage}
+              alt="landed"
+              style={{
+                position: "absolute",
+                bottom: "30%",
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: isMobile ? 36 : 52,
               }}
             />
           )}
         </div>
 
-        {/* 星星 */}
-        <img
-          src={isComplete ? "/treestaron.png" : "/treestaroff.png"}
-          style={{
-            position: "absolute",
-            right: "10%",
-            top: "12%",
-            width: "5%",
-            filter: isComplete
-              ? "brightness(1.4) drop-shadow(0 0 25px #FFD700)"
-              : "brightness(0.8)",
-            animation: isComplete ? "starGlow 2s infinite" : "none",
-          }}
-        />
-
-        {/* 底部進度 */}
+        {/* ================= 進度條 ================= */}
         <div
           style={{
             position: "absolute",
             left: "50%",
-            bottom: "6%",
+            bottom: isMobile ? 100 : 120,
+            transform: "translateX(-50%)",
+            width: isMobile ? 280 : 420,
+          }}
+        >
+          <img src="/prograssmain.png" style={{ width: "100%" }} />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              justifyContent: "space-evenly",
+              alignItems: "center",
+            }}
+          >
+            {[...Array(10)].map((_, i) => (
+              <img
+                key={i}
+                src={i < litProgress ? "/prograsson.png" : "/prograssoff.png"}
+                style={{
+                  width: isMobile ? 18 : 26,
+                  filter:
+                    i < litProgress
+                      ? "brightness(1.2) drop-shadow(0 0 8px #FFD700)"
+                      : "brightness(0.7)",
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* ================= 圖鑑 ================= */}
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            bottom: 24,
             transform: "translateX(-50%)",
           }}
         >
-          <img src="/prograssmain.png" style={{ width: 420 }} />
+          <img
+            src="/illustratedbook.png"
+            style={{ width: isMobile ? 70 : 100 }}
+          />
+          <button
+            onClick={() => alert("圖鑑功能開發中")}
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "transparent",
+              border: "none",
+            }}
+          />
         </div>
       </div>
 
-      {/* 放大照片 */}
+      {/* 照片放大 */}
       {selectedPhoto && (
         <div
           onClick={() => setSelectedPhoto(null)}
@@ -207,14 +253,8 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
 
       <style>{`
         @keyframes dropSock {
-          to {
-            top: 55%;
-            transform: translateX(-50%) rotate(360deg) scale(0.6);
-          }
-        }
-        @keyframes starGlow {
-          0%,100% { filter: brightness(1.4) drop-shadow(0 0 20px #FFD700); }
-          50% { filter: brightness(1.7) drop-shadow(0 0 35px #FFD700); }
+          from { top: -120px; transform: translateX(-50%) rotate(0deg) scale(1); }
+          to { top: 55%; transform: translateX(-50%) rotate(360deg) scale(0.6); }
         }
       `}</style>
     </div>
