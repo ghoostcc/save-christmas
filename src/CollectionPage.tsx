@@ -74,51 +74,45 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
             alignItems: "center",
           }}
         >
-          {/* 左側壁爐 + 照片 */}
-          <div
+          {/* 照片 1 */}
+          <img
+            src="/happy1.png"
+            alt="Photo 1"
+            onClick={() => setSelectedPhoto("/happy1.png")}
             style={{
               position: "absolute",
               left: isMobile ? "5%" : "8%",
-              top: "20%",
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
+              top: "18%",
+              width: isMobile ? "70px" : "110px",
+              height: isMobile ? "47px" : "73px",
+              objectFit: "cover",
+              cursor: "pointer",
+              transition: "transform 0.2s",
+              boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
             }}
-          >
-            {/* 照片 - 無框 */}
-            <img
-              src="/happy1.png"
-              alt="Photo 1"
-              onClick={() => setSelectedPhoto("/happy1.png")}
-              style={{
-                width: isMobile ? "70px" : "110px",
-                height: isMobile ? "47px" : "73px",
-                objectFit: "cover",
-                cursor: "pointer",
-                borderRadius: "8px",
-                transition: "transform 0.2s",
-                boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-            />
-            <img
-              src="/happy2.png"
-              alt="Photo 2"
-              onClick={() => setSelectedPhoto("/happy2.png")}
-              style={{
-                width: isMobile ? "70px" : "110px",
-                height: isMobile ? "47px" : "73px",
-                objectFit: "cover",
-                cursor: "pointer",
-                borderRadius: "8px",
-                transition: "transform 0.2s",
-                boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-            />
-          </div>
+            onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          />
+
+          {/* 照片 2 */}
+          <img
+            src="/happy2.png"
+            alt="Photo 2"
+            onClick={() => setSelectedPhoto("/happy2.png")}
+            style={{
+              position: "absolute",
+              left: isMobile ? "5%" : "8%",
+              top: "30%",
+              width: isMobile ? "70px" : "110px",
+              height: isMobile ? "47px" : "73px",
+              objectFit: "cover",
+              cursor: "pointer",
+              transition: "transform 0.2s",
+              boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          />
 
           {/* 中間相框區域 */}
           <div
@@ -184,13 +178,14 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
                   style={{
                     position: "absolute",
                     top: animationPhase === "dropping" ? "-150px" : "auto",
-                    bottom: animationPhase === "landed" ? "10%" : "auto",
+                    bottom: animationPhase === "landed" ? "30%" : "auto",
                     left: "50%",
                     transform: "translateX(-50%)",
                     width: isMobile ? "40px" : "60px",
                     height: isMobile ? "50px" : "75px",
                     animation: animationPhase === "dropping" ? "dropSockSlow 4s ease-in forwards" : "none",
                     zIndex: 100,
+                    objectFit: "contain",
                   }}
                 />
               )}
@@ -250,27 +245,32 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
             paddingBottom: "30px",
           }}
         >
-          {/* 進度條容器（背景圖已包含進度條底） */}
+          {/* 進度條容器 */}
           <div
             style={{
               position: "relative",
-              width: isMobile ? "85%" : "650px",
-              height: "60px",
+              width: isMobile ? "280px" : "420px",
+              height: isMobile ? "50px" : "70px",
+              backgroundImage: "url('/prograssmain.png')",
+              backgroundSize: "100% 100%",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center",
               display: "flex",
-              justifyContent: "space-around",
+              justifyContent: "space-evenly",
               alignItems: "center",
-              padding: "0 30px",
+              padding: "0 15px",
+              boxSizing: "border-box",
             }}
           >
-            {/* 10個進度條 */}
+            {/* 10個進度條平均分佈 */}
             {[...Array(10)].map((_, index) => (
               <img
                 key={index}
                 src={index < litProgress ? "/prograsson.png" : "/prograssoff.png"}
                 alt={`Progress ${index + 1}`}
                 style={{
-                  width: isMobile ? "35px" : "50px",
-                  height: isMobile ? "35px" : "50px",
+                  width: isMobile ? "20px" : "28px",
+                  height: isMobile ? "20px" : "28px",
                   transition: "all 0.5s ease",
                   filter: index < litProgress ? "brightness(1.2)" : "brightness(0.7)",
                 }}
@@ -401,7 +401,7 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
             transform: translateX(-50%) rotate(270deg) scale(0.7);
           }
           100% {
-            top: 60%;
+            bottom: 30%;
             opacity: 1;
             transform: translateX(-50%) rotate(360deg) scale(0.6);
           }
