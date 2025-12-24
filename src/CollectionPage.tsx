@@ -53,11 +53,14 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
         backgroundImage: isMobile
           ? "url('/mainDraw-mobile.png')"
           : "url('/mainDraw.png')",
-        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
+        backgroundSize: "contain",
+        backgroundColor: "#F3A21B",
         overflow: "hidden",
       }}
     >
+
       {/* ===== Safe Area（關鍵層）===== */}
       <div
         style={{
