@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState, useEffect } from "react";
 
 type CollectionPageProps = {
-  userSockImage?: string; // 使用者剛畫好的襪子圖片 URL（cloudinary）
-  totalSocksCount: number; // 總襪子數量（從資料庫取得）
-  isFirstVisit: boolean; // 是否為剛畫完的第一次訪問
+  userSockImage?: string;
+  totalSocksCount: number;
+  isFirstVisit: boolean;
 };
 
 const CollectionPage: React.FC<CollectionPageProps> = ({
@@ -12,340 +12,314 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
   isFirstVisit,
 }) => {
   const [showDropAnimation, setShowDropAnimation] = useState(false);
-
-  // 這段保留你原本邏輯：首次進來先顯示 total-1，動畫完再補回 total
-  const [currentCount, setCurrentCount] = useState(
-    totalSocksCount - (isFirstVisit ? 1 : 0)
-  );
-
+  const [currentCount, setCurrentCount] = useState(totalSocksCount - (isFirstVisit ? 1 : 0));
+  const [animationPhase, setAnimationPhase] = useState<"dropping" | "landed" | "none">("none");
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
 
-  // 手機判斷：避免 SSR/首次 render 取不到 window
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const update = () => setIsMobile(window.innerWidth <= 768);
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
-
-  // 計算燈泡數量（每3個襪子點亮1顆燈）✅ 你截圖那段
-  const litBulbs = Math.min(Math.floor(currentCount / 3), 10);
+  // 計算進度條數量（每3個襪子點亮1個進度條）
+  const litProgress = Math.min(Math.floor(currentCount / 3), 10);
   const isComplete = currentCount >= 30;
 
-  // 首次訪問播放掉落動畫 ✅ 你截圖那段
+  // 首次訪問播放掉落動畫
   useEffect(() => {
     if (isFirstVisit && userSockImage) {
       setShowDropAnimation(true);
-
-      // 動畫持續 2 秒後更新計數
-      const t = setTimeout(() => {
+      setAnimationPhase("dropping");
+      
+      // 4秒後動畫完成，襪子停在底部
+      setTimeout(() => {
+        setAnimationPhase("landed");
         setCurrentCount(totalSocksCount);
         setShowDropAnimation(false);
-      }, 2000);
-
-      return () => clearTimeout(t);
+      }, 4000);
     }
   }, [isFirstVisit, userSockImage, totalSocksCount]);
-
-  // 兩張相片清單
-  const photos = useMemo(() => ["/happy1.png", "/happy2.png"], []);
 
   return (
     <div
       style={{
         position: "fixed",
-        inset: 0,
+        top: 0,
+        left: 0,
         width: "100%",
         height: "100%",
-        backgroundImage: isMobile
-          ? "url('/mainDraw-mobile.png')"
-          : "url('/mainDraw.png')",
+        backgroundImage: isMobile ? "url('/mainDraw-mobile.png')" : "url('/mainDraw.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
         overflow: "hidden",
       }}
     >
-      {/* ===== 房間定位容器：所有 overlay 都用 absolute 疊在這層上 ===== */}
+      {/* 主容器 */}
       <div
         style={{
           position: "relative",
           width: "100%",
           height: "100%",
-          maxWidth: "1400px",
-          margin: "0 auto",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
-        {/* =======================
-            互動層：照片（無邊框）+ 透明 hit area
-            ======================= */}
+        {/* 上方區域 */}
         <div
           style={{
-            position: "absolute",
-            top: isMobile ? 18 : 26,
-            left: isMobile ? 24 : 50,
+            position: "relative",
+            width: "100%",
+            height: "70%",
             display: "flex",
-            gap: isMobile ? 8 : 14,
-            zIndex: 20,
+            justifyContent: "center",
+            alignItems: "center",
           }}
         >
-          {photos.map((src) => (
-            <div key={src} style={{ position: "relative" }}>
-              <img
-                src={src}
-                alt="photo"
-                style={{
-                  width: isMobile ? 62 : 105,
-                  height: isMobile ? 42 : 68,
-                  objectFit: "cover",
-                  display: "block",
-                  // ✅ 不要邊框
-                  border: "none",
-                  borderRadius: 0,
-                  boxShadow: "none",
-                  transform: "translateZ(0)",
-                }}
-              />
-              {/* ✅ 透明按鈕當 hit area（不影響圖片/排版） */}
-              <button
-                type="button"
-                onClick={() => setSelectedPhoto(src)}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  background: "transparent",
-                  border: "none",
-                  padding: 0,
-                  cursor: "zoom-in",
-                }}
-                aria-label="Open photo"
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* =======================
-            中央相框 + 襪子舞台（分層：frame 視覺 / stage 動畫）
-            ======================= */}
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -52%)",
-            width: isMobile ? 320 : 520,
-            height: isMobile ? 390 : 620,
-            zIndex: 10,
-          }}
-        >
-          {/* 相框視覺層：推薦用圖片 frame.png（最穩）
-              如果你沒有 frame.png，可以先用下面註解的 CSS 版本代替 */}
-          <img
-            src="/frame.png"
-            alt="frame"
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "block",
-              pointerEvents: "none",
-            }}
-            onError={(e) => {
-              // 若沒有 frame.png，避免破圖
-              (e.currentTarget as HTMLImageElement).style.display = "none";
-            }}
-          />
-
-          {/* 如果沒有 frame.png，可改用這個 CSS 相框（但仍然不要裁切動畫）
+          {/* 左側壁爐 + 照片 */}
           <div
             style={{
               position: "absolute",
-              inset: 0,
-              border: "15px solid #CD853F",
-              borderRadius: "20px",
-              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.2)",
-              backgroundColor: "rgba(70,130,180,0.85)",
-              pointerEvents: "none",
-            }}
-          />
-          */}
-
-          {/* ✅ 襪子舞台（stage）：不裁切、只放動畫/內容 */}
-          <div
-            style={{
-              position: "absolute",
-              // 這個 inset 你可依 frame.png 的內框留白微調
-              inset: isMobile ? "10% 12%" : "10% 12%",
-              pointerEvents: "none",
-              overflow: "visible", // ✅ 不裁切動畫
+              left: isMobile ? "5%" : "8%",
+              top: "20%",
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
             }}
           >
-            {/* 大襪子（純內容，不要被藍框綁死） */}
-            <div
+            {/* 照片 - 無框 */}
+            <img
+              src="/happy1.png"
+              alt="Photo 1"
+              onClick={() => setSelectedPhoto("/happy1.png")}
               style={{
-                position: "absolute",
-                inset: 0,
-                backgroundImage: "url('/bigsock.png')",
-                backgroundSize: "contain",
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "center",
+                width: isMobile ? "70px" : "110px",
+                height: isMobile ? "47px" : "73px",
+                objectFit: "cover",
+                cursor: "pointer",
+                borderRadius: "8px",
+                transition: "transform 0.2s",
+                boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
             />
+            <img
+              src="/happy2.png"
+              alt="Photo 2"
+              onClick={() => setSelectedPhoto("/happy2.png")}
+              style={{
+                width: isMobile ? "70px" : "110px",
+                height: isMobile ? "47px" : "73px",
+                objectFit: "cover",
+                cursor: "pointer",
+                borderRadius: "8px",
+                transition: "transform 0.2s",
+                boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            />
+          </div>
 
-            {/* 收集數字 */}
+          {/* 中間相框區域 */}
+          <div
+            style={{
+              position: "relative",
+              width: isMobile ? "280px" : "450px",
+              height: isMobile ? "350px" : "550px",
+              marginTop: isMobile ? "40px" : "60px",
+            }}
+          >
+            {/* 大聖誕襪 - 作為容器 */}
             <div
               style={{
                 position: "absolute",
                 top: "50%",
                 left: "50%",
                 transform: "translate(-50%, -50%)",
-                fontSize: isMobile ? 28 : 42,
-                fontWeight: 900,
-                color: "#FF6347",
-                textShadow: "3px 3px 6px rgba(0,0,0,0.7)",
-                fontFamily: "'Arial Black', sans-serif",
+                width: "70%",
+                height: "70%",
+                backgroundImage: "url('/bigsock.png')",
+                backgroundSize: "contain",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "flex-end",
+                paddingBottom: "15%",
               }}
             >
-              {currentCount}/30
-            </div>
+              {/* 已收集的小襪子堆疊在底部 */}
+              {!showDropAnimation && currentCount > 0 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "10%",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    justifyContent: "center",
+                    gap: "3px",
+                    maxWidth: "60%",
+                  }}
+                >
+                  {[...Array(Math.min(currentCount, 12))].map((_, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        width: isMobile ? "15px" : "20px",
+                        height: isMobile ? "20px" : "25px",
+                        backgroundImage: "url('/bigsock.png')",
+                        backgroundSize: "cover",
+                        opacity: 0.7,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
 
-            {/* 掉落動畫的小襪子 */}
-            {showDropAnimation && userSockImage && (
-              <img
-                src={userSockImage}
-                alt="Dropping sock"
+              {/* 掉落動畫中的小襪子 */}
+              {showDropAnimation && userSockImage && (
+                <img
+                  src={userSockImage}
+                  alt="Dropping sock"
+                  style={{
+                    position: "absolute",
+                    top: animationPhase === "dropping" ? "-150px" : "auto",
+                    bottom: animationPhase === "landed" ? "10%" : "auto",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: isMobile ? "40px" : "60px",
+                    height: isMobile ? "50px" : "75px",
+                    animation: animationPhase === "dropping" ? "dropSockSlow 4s ease-in forwards" : "none",
+                    zIndex: 100,
+                  }}
+                />
+              )}
+
+              {/* 顯示數量 */}
+              <div
                 style={{
                   position: "absolute",
-                  top: -120,
+                  top: "35%",
                   left: "50%",
-                  transform: "translateX(-50%)",
-                  width: isMobile ? 50 : 70,
-                  height: "auto",
-                  animation: "dropSock 2s ease-in-out forwards",
-                  zIndex: 5,
+                  transform: "translate(-50%, -50%)",
+                  fontSize: isMobile ? "32px" : "48px",
+                  fontWeight: "bold",
+                  color: "#FF6347",
+                  textShadow: "3px 3px 6px rgba(0,0,0,0.8)",
+                  fontFamily: "'Arial Black', sans-serif",
+                  zIndex: 10,
                 }}
-              />
-            )}
+              >
+                {currentCount}/30
+              </div>
+            </div>
+          </div>
+
+          {/* 右側聖誕樹星星 */}
+          <div
+            style={{
+              position: "absolute",
+              right: isMobile ? "5%" : "8%",
+              top: isMobile ? "5%" : "8%",
+            }}
+          >
+            <img
+              src={isComplete ? "/treestaron.png" : "/treestaroff.png"}
+              alt="Tree Star"
+              style={{
+                width: isMobile ? "50px" : "80px",
+                height: isMobile ? "50px" : "80px",
+                filter: isComplete ? "brightness(1.3) drop-shadow(0 0 25px #FFD700)" : "brightness(0.8)",
+                animation: isComplete ? "starGlow 2s ease-in-out infinite" : "none",
+              }}
+            />
           </div>
         </div>
 
-        {/* =======================
-            右側星星（完成狀態發亮）
-            ======================= */}
-        <img
-          src={isComplete ? "/treestaron.png" : "/treestaroff.png"}
-          alt="Tree Star"
-          style={{
-            position: "absolute",
-            top: isMobile ? 60 : 72,
-            right: isMobile ? 52 : 92,
-            width: isMobile ? 42 : 72,
-            height: "auto",
-            transition: "filter 1s ease",
-            filter: isComplete
-              ? "brightness(1.3) drop-shadow(0 0 20px #FFD700)"
-              : "brightness(0.85)",
-            animation: isComplete ? "starGlow 2s ease-in-out infinite" : "none",
-            zIndex: 12,
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* =======================
-            下方進度條（保留 prograssmain.png + 10 顆燈）
-            ======================= */}
+        {/* 下方進度條區域 */}
         <div
           style={{
-            position: "absolute",
-            left: "50%",
-            bottom: isMobile ? 90 : 110,
-            transform: "translateX(-50%)",
-            width: isMobile ? "92%" : 760,
-            height: isMobile ? 54 : 76,
-            backgroundImage: "url('/prograssmain.png')",
-            backgroundSize: "100% 100%",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "center",
+            position: "relative",
+            width: "100%",
+            height: "20%",
             display: "flex",
-            justifyContent: "space-around",
+            flexDirection: "column",
+            justifyContent: "center",
             alignItems: "center",
-            padding: isMobile ? "0 18px" : "0 30px",
-            boxSizing: "border-box",
-            zIndex: 15,
-            pointerEvents: "none",
+            gap: "20px",
+            paddingBottom: "30px",
           }}
         >
-          {[...Array(10)].map((_, index) => (
+          {/* 進度條容器（背景圖已包含進度條底） */}
+          <div
+            style={{
+              position: "relative",
+              width: isMobile ? "85%" : "650px",
+              height: "60px",
+              display: "flex",
+              justifyContent: "space-around",
+              alignItems: "center",
+              padding: "0 30px",
+            }}
+          >
+            {/* 10個進度條 */}
+            {[...Array(10)].map((_, index) => (
+              <img
+                key={index}
+                src={index < litProgress ? "/prograsson.png" : "/prograssoff.png"}
+                alt={`Progress ${index + 1}`}
+                style={{
+                  width: isMobile ? "35px" : "50px",
+                  height: isMobile ? "35px" : "50px",
+                  transition: "all 0.5s ease",
+                  filter: index < litProgress ? "brightness(1.2)" : "brightness(0.7)",
+                }}
+              />
+            ))}
+
+            {/* 燈泡（在進度條後面，全部亮才顯示） */}
             <img
-              key={index}
-              src={index < litBulbs ? "/lighton.png" : "/lightoff.png"}
-              alt={`Bulb ${index + 1}`}
+              src={isComplete ? "/lighton.png" : "/lightoff.png"}
+              alt="Main Light"
               style={{
-                width: isMobile ? 28 : 45,
-                height: isMobile ? 28 : 45,
-                transition: "all 0.5s ease",
-                filter:
-                  index < litBulbs
-                    ? "brightness(1.2) drop-shadow(0 0 10px #FFD700)"
-                    : "brightness(0.7)",
+                position: "absolute",
+                right: "-60px",
+                width: "70px",
+                height: "70px",
+                filter: isComplete ? "brightness(1.3) drop-shadow(0 0 20px #FFD700)" : "brightness(0.6)",
+                transition: "all 1s ease",
+                zIndex: isComplete ? 10 : 0,
               }}
             />
-          ))}
-        </div>
+          </div>
 
-        {/* =======================
-            圖鑑 + 浮動手指（保留）
-            ======================= */}
-        <div
-          style={{
-            position: "absolute",
-            left: "50%",
-            bottom: isMobile ? 10 : 18,
-            transform: "translateX(-50%)",
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            zIndex: 30,
-          }}
-        >
-          {/* 圖鑑圖片（視覺） */}
+          {/* 圖鑑按鈕 + 手指 */}
           <div style={{ position: "relative" }}>
             <img
               src="/illustratedbook.png"
               alt="Illustrated Book"
-              style={{
-                width: isMobile ? 86 : 120,
-                height: "auto",
-                display: "block",
-                filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.3))",
-                transform: "translateZ(0)",
-              }}
-            />
-            {/* ✅ 透明 hit area（不讓圖片本體參與互動排版） */}
-            <button
-              type="button"
               onClick={() => alert("圖鑑功能開發中...")}
               style={{
-                position: "absolute",
-                inset: 0,
-                background: "transparent",
-                border: "none",
+                width: isMobile ? "70px" : "100px",
+                height: isMobile ? "70px" : "100px",
                 cursor: "pointer",
-                padding: 0,
+                transition: "transform 0.2s",
+                filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.3))",
               }}
-              aria-label="Open illustrated book"
+              onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
             />
 
-            {/* 浮動手指提示（不接收點擊） */}
+            {/* 浮動手指 */}
             <img
               src="/handpoint.png"
               alt="Hand Point"
               style={{
                 position: "absolute",
-                top: isMobile ? -42 : -54,
-                right: isMobile ? -30 : -40,
-                width: isMobile ? 52 : 72,
-                height: "auto",
+                top: "-45px",
+                right: "-35px",
+                width: "55px",
+                height: "55px",
                 animation: "floatFinger 1.5s ease-in-out infinite",
                 pointerEvents: "none",
               }}
@@ -354,14 +328,17 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
         </div>
       </div>
 
-      {/* ===== 照片 Lightbox Modal ===== */}
+      {/* 照片 Lightbox */}
       {selectedPhoto && (
         <div
           onClick={() => setSelectedPhoto(null)}
           style={{
             position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.85)",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0, 0, 0, 0.9)",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -376,10 +353,9 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
               maxWidth: "90%",
               maxHeight: "90%",
               borderRadius: "15px",
-              boxShadow: "0 0 60px rgba(255, 255, 255, 0.4)",
+              boxShadow: "0 0 60px rgba(255, 255, 255, 0.5)",
             }}
           />
-
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -387,21 +363,20 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
             }}
             style={{
               position: "absolute",
-              top: 24,
-              right: 24,
-              fontSize: 42,
+              top: "30px",
+              right: "30px",
+              fontSize: "50px",
               color: "white",
-              background: "rgba(0, 0, 0, 0.55)",
+              background: "rgba(0, 0, 0, 0.6)",
               border: "none",
               cursor: "pointer",
-              width: 56,
-              height: 56,
+              width: "60px",
+              height: "60px",
               borderRadius: "50%",
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
             }}
-            aria-label="Close"
           >
             ✕
           </button>
@@ -410,28 +385,34 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
 
       {/* CSS 動畫 */}
       <style>{`
-        @keyframes dropSock {
+        @keyframes dropSockSlow {
           0% {
-            top: -120px;
+            top: -150px;
             opacity: 1;
-            transform: translateX(-50%) rotate(0deg);
+            transform: translateX(-50%) rotate(0deg) scale(1);
+          }
+          25% {
+            transform: translateX(-50%) rotate(90deg) scale(0.9);
           }
           50% {
-            transform: translateX(-50%) rotate(180deg);
+            transform: translateX(-50%) rotate(180deg) scale(0.8);
+          }
+          75% {
+            transform: translateX(-50%) rotate(270deg) scale(0.7);
           }
           100% {
-            top: 52%;
-            opacity: 0;
-            transform: translateX(-50%) rotate(360deg) scale(0.5);
+            top: 60%;
+            opacity: 1;
+            transform: translateX(-50%) rotate(360deg) scale(0.6);
           }
         }
 
         @keyframes starGlow {
           0%, 100% {
-            filter: brightness(1.3) drop-shadow(0 0 20px #FFD700);
+            filter: brightness(1.3) drop-shadow(0 0 25px #FFD700);
           }
           50% {
-            filter: brightness(1.6) drop-shadow(0 0 30px #FFD700);
+            filter: brightness(1.6) drop-shadow(0 0 35px #FFD700);
           }
         }
 
@@ -440,7 +421,7 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
             transform: translateY(0);
           }
           50% {
-            transform: translateY(-10px);
+            transform: translateY(-12px);
           }
         }
       `}</style>
