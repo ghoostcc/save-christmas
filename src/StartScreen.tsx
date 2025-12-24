@@ -43,8 +43,8 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
              * - left / top 是「相對螢幕」的百分比
              * - 建議你先用 50% / 50% 讓它在正中間，確認能點，再慢慢對到設計稿位置
              */
-            left: "57%",
-            top: "25%",
+            left: "55%",
+            top: "28%",
             transform: "translate(-50%, -50%)",
 
             /**
@@ -52,7 +52,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
              * - 桌機用 clamp 讓它在不同螢幕尺寸自動縮放
              * - 手機會自然變小
              */
-            width: "clamp(180px, 32vw, 300px)",
+            width: "clamp(180px, 32vw, 280px)",
             aspectRatio: "630 / 260",
             height: "auto",
 

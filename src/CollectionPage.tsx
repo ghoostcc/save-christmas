@@ -116,13 +116,7 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
               width: isMobile ? 300 : 480,
               height: isMobile ? 380 : 600,
             }}
-          >
-            <img
-              src="/frame.png"
-              alt="frame"
-              style={{ width: "100%", height: "100%", display: "block" }}
-            />
-
+            >
             <div
               style={{
                 position: "absolute",
