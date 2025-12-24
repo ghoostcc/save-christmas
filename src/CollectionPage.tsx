@@ -24,15 +24,18 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
   // 首次訪問播放掉落動畫
   useEffect(() => {
     if (isFirstVisit && userSockImage) {
-      setShowDropAnimation(true);
-      setAnimationPhase("dropping");
+      // 等待 500ms 確保背景圖載入
+      setTimeout(() => {
+        setShowDropAnimation(true);
+        setAnimationPhase("dropping");
+      }, 500);
       
-      // 4秒後動畫完成，襪子停在底部
+      // 4.5秒後動畫完成（500ms 延遲 + 4秒動畫）
       setTimeout(() => {
         setAnimationPhase("landed");
         setCurrentCount(totalSocksCount);
         setShowDropAnimation(false);
-      }, 4000);
+      }, 4500);
     }
   }, [isFirstVisit, userSockImage, totalSocksCount]);
 
@@ -171,19 +174,36 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
               )}
 
               {/* 掉落動畫中的小襪子 */}
-              {showDropAnimation && userSockImage && (
+              {showDropAnimation && userSockImage && animationPhase === "dropping" && (
                 <img
                   src={userSockImage}
                   alt="Dropping sock"
                   style={{
                     position: "absolute",
-                    top: animationPhase === "dropping" ? "-150px" : "auto",
-                    bottom: animationPhase === "landed" ? "30%" : "auto",
+                    top: "-150px",
                     left: "50%",
                     transform: "translateX(-50%)",
                     width: isMobile ? "40px" : "60px",
                     height: isMobile ? "50px" : "75px",
-                    animation: animationPhase === "dropping" ? "dropSockSlow 4s ease-in forwards" : "none",
+                    animation: "dropSockSlow 4s ease-in forwards",
+                    zIndex: 100,
+                    objectFit: "contain",
+                  }}
+                />
+              )}
+
+              {/* 掉落後停留的小襪子 */}
+              {animationPhase === "landed" && userSockImage && (
+                <img
+                  src={userSockImage}
+                  alt="Landed sock"
+                  style={{
+                    position: "absolute",
+                    bottom: "35%",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: isMobile ? "35px" : "50px",
+                    height: isMobile ? "44px" : "63px",
                     zIndex: 100,
                     objectFit: "contain",
                   }}
@@ -250,32 +270,49 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
             style={{
               position: "relative",
               width: isMobile ? "280px" : "420px",
-              height: isMobile ? "50px" : "70px",
-              backgroundImage: "url('/prograssmain.png')",
-              backgroundSize: "100% 100%",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center",
               display: "flex",
-              justifyContent: "space-evenly",
+              justifyContent: "center",
               alignItems: "center",
-              padding: "0 15px",
-              boxSizing: "border-box",
             }}
           >
-            {/* 10個進度條平均分佈 */}
-            {[...Array(10)].map((_, index) => (
-              <img
-                key={index}
-                src={index < litProgress ? "/prograsson.png" : "/prograssoff.png"}
-                alt={`Progress ${index + 1}`}
-                style={{
-                  width: isMobile ? "20px" : "28px",
-                  height: isMobile ? "20px" : "28px",
-                  transition: "all 0.5s ease",
-                  filter: index < litProgress ? "brightness(1.2)" : "brightness(0.7)",
-                }}
-              />
-            ))}
+            {/* 進度條底座圖片 */}
+            <img
+              src="/prograssmain.png"
+              alt="Progress Bar Base"
+              style={{
+                width: "100%",
+                height: "auto",
+                display: "block",
+              }}
+            />
+
+            {/* 10個進度燈疊加在底座上 */}
+            <div
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "85%",
+                display: "flex",
+                justifyContent: "space-evenly",
+                alignItems: "center",
+              }}
+            >
+              {[...Array(10)].map((_, index) => (
+                <img
+                  key={index}
+                  src={index < litProgress ? "/prograsson.png" : "/prograssoff.png"}
+                  alt={`Progress ${index + 1}`}
+                  style={{
+                    width: isMobile ? "18px" : "26px",
+                    height: isMobile ? "18px" : "26px",
+                    transition: "all 0.5s ease",
+                    filter: index < litProgress ? "brightness(1.2)" : "brightness(0.7)",
+                  }}
+                />
+              ))}
+            </div>
 
             {/* 燈泡（在進度條後面，全部亮才顯示） */}
             <img
@@ -392,16 +429,20 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
             transform: translateX(-50%) rotate(0deg) scale(1);
           }
           25% {
+            top: 15%;
             transform: translateX(-50%) rotate(90deg) scale(0.9);
           }
           50% {
+            top: 35%;
             transform: translateX(-50%) rotate(180deg) scale(0.8);
           }
           75% {
+            top: 50%;
             transform: translateX(-50%) rotate(270deg) scale(0.7);
           }
           100% {
-            bottom: 30%;
+            top: 65%;
+            bottom: 35%;
             opacity: 1;
             transform: translateX(-50%) rotate(360deg) scale(0.6);
           }
