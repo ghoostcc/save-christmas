@@ -14,12 +14,12 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
         position: "fixed",
         inset: 0,
         backgroundImage: isMobile
-          ? "url('/mainDraw-mobile.png')"
-          : "url('/mainDraw.png')",
+          ? "url('/mainnoDraw-mobile.png')"
+          : "url('/mainnoDraw.png')",
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
         backgroundSize: "contain",
-        backgroundColor: "#D2EBE6",
+        backgroundColor: "#F3A21B",
         overflow: "hidden",
       }}
     >
