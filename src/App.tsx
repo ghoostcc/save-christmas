@@ -4,6 +4,7 @@ import ProfileSetup from "./ProfileSetup";
 import StartScreen from "./StartScreen";
 import CanvasDrawing from "./CanvasDrawing";
 import LetterPage from "./LetterPage";
+import CollectionPage from "./CollectionPage";
 import { supabase } from "./supabaseClient";
 
 // Cloudinary 設定
@@ -15,6 +16,7 @@ export default function App() {
   const [hasProfile, setHasProfile] = useState(false);
   const [showCanvas, setShowCanvas] = useState(false);
   const [showLetter, setShowLetter] = useState(false);
+  const [showCollection, setShowCollection] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -23,6 +25,9 @@ export default function App() {
   const [userName, setUserName] = useState("");
   const [userColor, setUserColor] = useState("");
   const [sockId, setSockId] = useState<number | null>(null);
+  const [userSockImage, setUserSockImage] = useState<string>("");
+  const [totalSocksCount, setTotalSocksCount] = useState(0);
+  const [isFirstVisit, setIsFirstVisit] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [awaitingVerification, setAwaitingVerification] = useState(false);
@@ -76,6 +81,25 @@ export default function App() {
         setUserName(profile.name);
         setUserColor(profile.color);
         setHasProfile(true);
+
+        // 檢查是否已經有襪子（如果有，直接顯示收集頁）
+        const { data: userSock } = await supabase
+          .from("socks")
+          .select("*")
+          .eq("user_email", session.user.email)
+          .single();
+
+        if (userSock) {
+          console.log("✅ 找到用戶的襪子");
+          // 取得總襪子數
+          const { count } = await supabase
+            .from("socks")
+            .select("*", { count: "exact", head: true });
+          
+          setTotalSocksCount(count || 0);
+          setIsFirstVisit(false);
+          setShowCollection(true);
+        }
       } else {
         console.log("❌ 沒有 profile，需要設定");
         setHasProfile(false);
@@ -93,6 +117,7 @@ export default function App() {
     setHasProfile(false);
     setShowCanvas(false);
     setShowLetter(false);
+    setShowCollection(false);
     setLoading(false);
   };
 
@@ -202,6 +227,9 @@ export default function App() {
 
       console.log("✅ 圖片上傳成功:", imageUrl);
 
+      // 儲存圖片 URL 以便之後顯示動畫
+      setUserSockImage(imageUrl);
+
       // 儲存到 Supabase
       const { data: sockData, error: insertError } = await supabase
         .from('socks')
@@ -247,11 +275,18 @@ export default function App() {
       if (updateError) throw updateError;
 
       console.log("✅ 信件已儲存！");
-      alert("你的聖誕襪和祝福已經完成了！🎄");
+
+      // 取得總襪子數
+      const { count } = await supabase
+        .from("socks")
+        .select("*", { count: "exact", head: true });
       
-      // 重置狀態回到開始畫面
+      setTotalSocksCount(count || 0);
+      setIsFirstVisit(true); // 第一次訪問，播放動畫
+      
+      // 跳轉到收集頁面
       setShowLetter(false);
-      setSockId(null);
+      setShowCollection(true);
       
     } catch (err: any) {
       console.error("❌ 儲存信件失敗:", err);
@@ -356,6 +391,17 @@ export default function App() {
   // 已登入但沒有 profile - 顯示設定頁
   if (isLoggedIn && !hasProfile) {
     return <ProfileSetup onComplete={handleProfileComplete} />;
+  }
+
+  // 顯示收集頁面
+  if (showCollection) {
+    return (
+      <CollectionPage
+        userSockImage={userSockImage}
+        totalSocksCount={totalSocksCount}
+        isFirstVisit={isFirstVisit}
+      />
+    );
   }
 
   // 已登入且有 profile，但還沒開始繪製 - 顯示 Start 畫面
