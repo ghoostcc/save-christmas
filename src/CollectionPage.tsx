@@ -110,11 +110,11 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
           <div
             style={{
               position: "absolute",
-              top: "50%",
-              left: "50%",
+              top: "37.5%",
+              left: "50.5%",
               transform: "translate(-50%, -50%)",
-              width: isMobile ? 300 : 480,
-              height: isMobile ? 380 : 600,
+              width: isMobile ? 1500 : 1500,
+              height: isMobile ? 660 : 660,
             }}
             >
             <div
@@ -187,8 +187,8 @@ const CollectionPage: React.FC<CollectionPageProps> = ({
             alt="star"
             style={{
               position: "absolute",
-              right: isMobile ? "6%" : "8%",
-              top: isMobile ? "6%" : "8%",
+              right: isMobile ? "11.3%" : "11.3%",
+              top: isMobile ? "36%" : "36%",
               width: isMobile ? 48 : 80,
               filter: isComplete
                 ? "brightness(1.4) drop-shadow(0 0 25px #FFD700)"
