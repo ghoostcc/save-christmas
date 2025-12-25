@@ -1,263 +1,191 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-interface TreePageProps {
+type TreePageProps = {
   totalSocksCount: number;
-}
+};
 
-export default function TreePage({ totalSocksCount }: TreePageProps) {
-  const [showGallery, setShowGallery] = useState(false);
+const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1200
+  );
+
+  const isMobile = windowWidth <= 768;
+  const isComplete = totalSocksCount >= 30;
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
-    <div style={{
-      width: "100vw",
-      height: "100vh",
-      position: "relative",
-      backgroundImage: "url('/tree.png')",
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      overflow: "hidden"
-    }}>
-      {/* 壁爐火焰動畫 - 左側壁爐位置 */}
-      <div style={{
-        position: "absolute",
-        left: "180px",
-        bottom: "120px",
-        width: "80px",
-        height: "100px",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-end"
-      }}>
-        {/* 火焰效果 */}
-        {[...Array(5)].map((_, i) => (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              bottom: "0",
-              left: `${i * 15}px`,
-              width: "20px",
-              height: `${40 + Math.random() * 40}px`,
-              background: `linear-gradient(to top, #ff6b00, #ff9500, #ffd700)`,
-              borderRadius: "50% 50% 0 0",
-              animation: `flicker ${0.3 + Math.random() * 0.3}s infinite alternate`,
-              opacity: 0.8,
-              filter: "blur(2px)"
-            }}
-          />
-        ))}
-      </div>
-
-      {/* 聖誕樹下壁爐火焰 - 右側聖誕樹旁壁爐 */}
-      <div style={{
-        position: "absolute",
-        right: "280px",
-        bottom: "120px",
-        width: "60px",
-        height: "80px",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-end"
-      }}>
-        {[...Array(4)].map((_, i) => (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              bottom: "0",
-              left: `${i * 12}px`,
-              width: "15px",
-              height: `${30 + Math.random() * 30}px`,
-              background: `linear-gradient(to top, #ff6b00, #ff9500, #ffd700)`,
-              borderRadius: "50% 50% 0 0",
-              animation: `flicker ${0.4 + Math.random() * 0.3}s infinite alternate`,
-              opacity: 0.8,
-              filter: "blur(2px)"
-            }}
-          />
-        ))}
-      </div>
-
-      {/* 左上角圖鑑框互動區 */}
-      <button
-        onClick={() => setShowGallery(true)}
+    /* ✅ 最外層：固定 viewport，不受 DevTools 影響 */
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        backgroundImage: "url('/tree.png')",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+        backgroundSize: "contain",
+        backgroundColor: "#000", // 防止留白
+        overflow: "hidden",
+      }}
+    >
+      {/* 主容器 */}
+      <div
         style={{
-          position: "absolute",
-          left: "140px",
-          top: "85px",
-          width: "90px",
-          height: "120px",
-          backgroundColor: "transparent",
-          border: "3px solid transparent",
-          cursor: "pointer",
-          transition: "all 0.3s",
-          borderRadius: "8px"
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.border = "3px solid #FFD700";
-          e.currentTarget.style.backgroundColor = "rgba(255, 215, 0, 0.1)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.border = "3px solid transparent";
-          e.currentTarget.style.backgroundColor = "transparent";
+          position: "relative",
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
-        <span style={{
-          position: "absolute",
-          bottom: "-30px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          color: "#fff",
-          fontSize: "14px",
-          fontWeight: "bold",
-          textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
-          whiteSpace: "nowrap",
-          opacity: 0,
-          transition: "opacity 0.3s"
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.opacity = "1"}
+        {/* 上方區域 */}
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            height: "70%",
+          }}
         >
-          點擊查看圖鑑
-        </span>
-      </button>
+          {/* 左側：壁爐 + 照片 */}
+          <div
+            style={{
+              position: "absolute",
+              left: isMobile ? "5%" : "8%",
+              top: isMobile ? "35%" : "30%",
+              width: isMobile ? "120px" : "200px",
+              height: isMobile ? "140px" : "230px",
+            }}
+          >
+            {/* 火焰 */}
+            {isComplete && (
+              <>
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "25%",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: "50%",
+                    height: "40%",
+                    background:
+                      "radial-gradient(ellipse at bottom, #FF6B00, #FF4500, #FFA500, transparent)",
+                    borderRadius: "50%",
+                    animation: "flicker 1.5s infinite",
+                    filter: "blur(2px)",
+                    zIndex: 5,
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "28%",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: "40%",
+                    height: "35%",
+                    background:
+                      "radial-gradient(ellipse at bottom, #FFD700, #FFA500, #FF6347, transparent)",
+                    borderRadius: "50%",
+                    animation: "flicker 1.2s infinite reverse",
+                    filter: "blur(1px)",
+                    zIndex: 6,
+                  }}
+                />
+              </>
+            )}
 
-      {/* 左下角相框互動區 */}
-      <button
-        onClick={() => alert("相框功能開發中")}
-        style={{
-          position: "absolute",
-          left: "205px",
-          bottom: "280px",
-          width: "75px",
-          height: "75px",
-          backgroundColor: "transparent",
-          border: "3px solid transparent",
-          cursor: "pointer",
-          transition: "all 0.3s",
-          borderRadius: "8px"
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.border = "3px solid #FFD700";
-          e.currentTarget.style.backgroundColor = "rgba(255, 215, 0, 0.1)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.border = "3px solid transparent";
-          e.currentTarget.style.backgroundColor = "transparent";
-        }}
-      />
+            {/* 照片 */}
+            {["/happy1.png", "/happy2.png"].map((src, i) => (
+              <img
+                key={src}
+                src={src}
+                onClick={() => setSelectedPhoto(src)}
+                style={{
+                  position: "absolute",
+                  top: isMobile ? `${-50 + i * 45}px` : `${-70 + i * 60}px`,
+                  left: "5%",
+                  width: isMobile ? "60px" : "95px",
+                  height: isMobile ? "40px" : "63px",
+                  objectFit: "cover",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+                }}
+              />
+            ))}
+          </div>
 
-      {/* 左下角指引手位置的相框 */}
-      <button
-        onClick={() => alert("相簿功能開發中")}
-        style={{
-          position: "absolute",
-          left: "295px",
-          bottom: "280px",
-          width: "85px",
-          height: "75px",
-          backgroundColor: "transparent",
-          border: "3px solid transparent",
-          cursor: "pointer",
-          transition: "all 0.3s",
-          borderRadius: "8px"
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.border = "3px solid #FFD700";
-          e.currentTarget.style.backgroundColor = "rgba(255, 215, 0, 0.1)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.border = "3px solid transparent";
-          e.currentTarget.style.backgroundColor = "transparent";
-        }}
-      />
+          {/* 右側：聖誕樹星星 */}
+          <img
+            src={isComplete ? "/treestaron.png" : "/treestaroff.png"}
+            style={{
+              position: "absolute",
+              right: isMobile ? "8%" : "10%",
+              top: isMobile ? "10%" : "8%",
+              width: isMobile ? "50px" : "80px",
+              filter: isComplete
+                ? "brightness(1.4) drop-shadow(0 0 25px #FFD700)"
+                : "brightness(0.8)",
+              animation: isComplete ? "starGlow 2s infinite" : "none",
+            }}
+          />
+        </div>
 
-      {/* 襪子數量顯示 */}
-      <div style={{
-        position: "absolute",
-        top: "30px",
-        left: "50%",
-        transform: "translateX(-50%)",
-        backgroundColor: "rgba(26, 71, 42, 0.9)",
-        padding: "15px 30px",
-        borderRadius: "20px",
-        color: "white",
-        fontSize: "24px",
-        fontWeight: "bold",
-        textAlign: "center",
-        border: "3px solid #FFD700",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.3)"
-      }}>
-        🧦 共有 {totalSocksCount} 個聖誕襪
+        {/* 下方按鈕 */}
+        <div style={{ paddingBottom: "30px" }}>
+          <img
+            src="/illustratedbook.png"
+            style={{
+              width: isMobile ? "70px" : "100px",
+              cursor: "pointer",
+            }}
+          />
+        </div>
       </div>
 
-      {/* 圖鑑彈窗 */}
-      {showGallery && (
+      {/* Lightbox */}
+      {selectedPhoto && (
         <div
-          onClick={() => setShowGallery(false)}
+          onClick={() => setSelectedPhoto(null)}
           style={{
             position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            inset: 0,
+            background: "rgba(0,0,0,0.9)",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            zIndex: 1000
+            zIndex: 1000,
           }}
         >
-          <div
-            onClick={(e) => e.stopPropagation()}
+          <img
+            src={selectedPhoto}
             style={{
-              backgroundColor: "#1a472a",
-              padding: "40px",
-              borderRadius: "20px",
-              maxWidth: "80%",
-              maxHeight: "80%",
-              overflow: "auto",
-              border: "3px solid #FFD700"
+              maxWidth: "90%",
+              maxHeight: "90%",
+              borderRadius: "12px",
             }}
-          >
-            <h2 style={{ color: "white", marginBottom: "20px", textAlign: "center" }}>
-              🎄 聖誕襪圖鑑
-            </h2>
-            <p style={{ color: "white", textAlign: "center", marginBottom: "20px" }}>
-              目前收集了 {totalSocksCount} 個聖誕襪！
-            </p>
-            <button
-              onClick={() => setShowGallery(false)}
-              style={{
-                display: "block",
-                margin: "0 auto",
-                padding: "10px 30px",
-                backgroundColor: "#4CAF50",
-                color: "white",
-                border: "none",
-                borderRadius: "10px",
-                fontSize: "18px",
-                cursor: "pointer",
-                fontWeight: "bold"
-              }}
-            >
-              關閉
-            </button>
-          </div>
+          />
         </div>
       )}
 
       <style>{`
         @keyframes flicker {
-          0% {
-            transform: scale(1) translateY(0);
-            opacity: 0.8;
-          }
-          100% {
-            transform: scale(1.1) translateY(-5px);
-            opacity: 1;
-          }
+          0%,100% { opacity:1; }
+          50% { opacity:0.85; }
+        }
+        @keyframes starGlow {
+          0%,100% { filter: brightness(1.3) drop-shadow(0 0 20px #FFD700); }
+          50% { filter: brightness(1.6) drop-shadow(0 0 35px #FFD700); }
         }
       `}</style>
     </div>
   );
-}
+};
+
+export default TreePage;
