@@ -20,127 +20,139 @@ const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
   }, []);
 
   return (
-    /* ✅ 最外層：固定 viewport，不受 DevTools 影響 */
+    /* ===============================
+       外層：螢幕本身（永遠滿版）
+    =============================== */
     <div
       style={{
         position: "fixed",
         inset: 0,
-        backgroundImage: "url('/tree.png')",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
-        backgroundSize: "contain",
-        backgroundColor: "#000", // 防止留白
+        backgroundColor: "#EB9B09",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
         overflow: "hidden",
       }}
     >
-      {/* 主容器 */}
+      {/* ===============================
+         中層：固定比例舞台（關鍵）
+      =============================== */}
       <div
         style={{
           position: "relative",
           width: "100%",
           height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          alignItems: "center",
+          maxWidth: "1920px",
+          aspectRatio: "16 / 9",
+          backgroundImage: "url('/tree.png')",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+          backgroundSize: "cover",
         }}
       >
-        {/* 上方區域 */}
+        {/* ===============================
+            左側：壁爐 + 火焰 + 照片
+        =============================== */}
         <div
           style={{
-            position: "relative",
-            width: "100%",
-            height: "70%",
+            position: "absolute",
+            left: isMobile ? "5%" : "8%",
+            top: isMobile ? "38%" : "32%",
+            width: isMobile ? "120px" : "200px",
+            height: isMobile ? "140px" : "230px",
           }}
         >
-          {/* 左側：壁爐 + 照片 */}
-          <div
-            style={{
-              position: "absolute",
-              left: isMobile ? "5%" : "8%",
-              top: isMobile ? "35%" : "30%",
-              width: isMobile ? "120px" : "200px",
-              height: isMobile ? "140px" : "230px",
-            }}
-          >
-            {/* 火焰 */}
-            {isComplete && (
-              <>
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "25%",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    width: "50%",
-                    height: "40%",
-                    background:
-                      "radial-gradient(ellipse at bottom, #FF6B00, #FF4500, #FFA500, transparent)",
-                    borderRadius: "50%",
-                    animation: "flicker 1.5s infinite",
-                    filter: "blur(2px)",
-                    zIndex: 5,
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: "28%",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    width: "40%",
-                    height: "35%",
-                    background:
-                      "radial-gradient(ellipse at bottom, #FFD700, #FFA500, #FF6347, transparent)",
-                    borderRadius: "50%",
-                    animation: "flicker 1.2s infinite reverse",
-                    filter: "blur(1px)",
-                    zIndex: 6,
-                  }}
-                />
-              </>
-            )}
-
-            {/* 照片 */}
-            {["/happy1.png", "/happy2.png"].map((src, i) => (
-              <img
-                key={src}
-                src={src}
-                onClick={() => setSelectedPhoto(src)}
+          {/* 火焰 */}
+          {isComplete && (
+            <>
+              <div
                 style={{
                   position: "absolute",
-                  top: isMobile ? `${-50 + i * 45}px` : `${-70 + i * 60}px`,
-                  left: "5%",
-                  width: isMobile ? "60px" : "95px",
-                  height: isMobile ? "40px" : "63px",
-                  objectFit: "cover",
-                  cursor: "pointer",
-                  boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+                  bottom: "25%",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: "50%",
+                  height: "40%",
+                  background:
+                    "radial-gradient(ellipse at bottom, #FF6B00, #FF4500, #FFA500, transparent)",
+                  borderRadius: "50%",
+                  animation: "flicker 1.5s infinite",
+                  filter: "blur(2px)",
+                  zIndex: 5,
                 }}
               />
-            ))}
-          </div>
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "28%",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: "40%",
+                  height: "35%",
+                  background:
+                    "radial-gradient(ellipse at bottom, #FFD700, #FFA500, #FF6347, transparent)",
+                  borderRadius: "50%",
+                  animation: "flicker 1.2s infinite reverse",
+                  filter: "blur(1px)",
+                  zIndex: 6,
+                }}
+              />
+            </>
+          )}
 
-          {/* 右側：聖誕樹星星 */}
-          <img
-            src={isComplete ? "/treestaron.png" : "/treestaroff.png"}
-            style={{
-              position: "absolute",
-              right: isMobile ? "8%" : "10%",
-              top: isMobile ? "10%" : "8%",
-              width: isMobile ? "50px" : "80px",
-              filter: isComplete
-                ? "brightness(1.4) drop-shadow(0 0 25px #FFD700)"
-                : "brightness(0.8)",
-              animation: isComplete ? "starGlow 2s infinite" : "none",
-            }}
-          />
+          {/* 照片 */}
+          {["/happy1.png", "/happy2.png"].map((src, i) => (
+            <img
+              key={src}
+              src={src}
+              onClick={() => setSelectedPhoto(src)}
+              style={{
+                position: "absolute",
+                top: isMobile ? `${-50 + i * 45}px` : `${-70 + i * 60}px`,
+                left: "5%",
+                width: isMobile ? "60px" : "95px",
+                height: isMobile ? "40px" : "63px",
+                objectFit: "cover",
+                cursor: "pointer",
+                boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+                zIndex: 10,
+              }}
+            />
+          ))}
         </div>
 
-        {/* 下方按鈕 */}
-        <div style={{ paddingBottom: "30px" }}>
+        {/* ===============================
+            右側：聖誕樹星星
+        =============================== */}
+        <img
+          src={isComplete ? "/treestaron.png" : "/treestaroff.png"}
+          alt="Tree Star"
+          style={{
+            position: "absolute",
+            right: isMobile ? "10%" : "12%",
+            top: isMobile ? "10%" : "8%",
+            width: isMobile ? "50px" : "80px",
+            filter: isComplete
+              ? "brightness(1.4) drop-shadow(0 0 25px #FFD700)"
+              : "brightness(0.8)",
+            animation: isComplete ? "starGlow 2s infinite" : "none",
+          }}
+        />
+
+        {/* ===============================
+            下方：圖鑑按鈕
+        =============================== */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: "6%",
+            left: "50%",
+            transform: "translateX(-50%)",
+          }}
+        >
           <img
             src="/illustratedbook.png"
+            alt="Illustrated Book"
             style={{
               width: isMobile ? "70px" : "100px",
               cursor: "pointer",
@@ -149,7 +161,9 @@ const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
         </div>
       </div>
 
-      {/* Lightbox */}
+      {/* ===============================
+          Lightbox
+      =============================== */}
       {selectedPhoto && (
         <div
           onClick={() => setSelectedPhoto(null)}
@@ -165,6 +179,7 @@ const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
         >
           <img
             src={selectedPhoto}
+            alt="Preview"
             style={{
               maxWidth: "90%",
               maxHeight: "90%",
@@ -174,6 +189,9 @@ const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
         </div>
       )}
 
+      {/* ===============================
+          動畫
+      =============================== */}
       <style>{`
         @keyframes flicker {
           0%,100% { opacity:1; }
