@@ -21,7 +21,7 @@ const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
 
   return (
     /* ===============================
-       外層：螢幕本身（永遠滿版）
+       外層：整個螢幕
     =============================== */
     <div
       style={{
@@ -35,19 +35,17 @@ const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
       }}
     >
       {/* ===============================
-         中層：固定比例舞台（關鍵）
+         中層：9:16 固定比例舞台
       =============================== */}
       <div
         style={{
           position: "relative",
-          width: "100%",
           height: "100%",
-          maxWidth: "1920px",
-          aspectRatio: "16 / 9",
+          aspectRatio: "9 / 16", // ⭐ 關鍵：對應 1080x1920
           backgroundImage: "url('/tree.png')",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
-          backgroundSize: "cover",
+          backgroundSize: "contain", // ⭐ 不裁切、不放大
         }}
       >
         {/* ===============================
@@ -56,13 +54,12 @@ const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
         <div
           style={{
             position: "absolute",
-            left: isMobile ? "5%" : "8%",
-            top: isMobile ? "38%" : "32%",
+            left: isMobile ? "6%" : "8%",
+            top: isMobile ? "42%" : "38%",
             width: isMobile ? "120px" : "200px",
             height: isMobile ? "140px" : "230px",
           }}
         >
-          {/* 火焰 */}
           {isComplete && (
             <>
               <div
@@ -78,7 +75,6 @@ const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
                   borderRadius: "50%",
                   animation: "flicker 1.5s infinite",
                   filter: "blur(2px)",
-                  zIndex: 5,
                 }}
               />
               <div
@@ -94,13 +90,11 @@ const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
                   borderRadius: "50%",
                   animation: "flicker 1.2s infinite reverse",
                   filter: "blur(1px)",
-                  zIndex: 6,
                 }}
               />
             </>
           )}
 
-          {/* 照片 */}
           {["/happy1.png", "/happy2.png"].map((src, i) => (
             <img
               key={src}
@@ -108,29 +102,28 @@ const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
               onClick={() => setSelectedPhoto(src)}
               style={{
                 position: "absolute",
-                top: isMobile ? `${-50 + i * 45}px` : `${-70 + i * 60}px`,
+                top: `${-60 + i * 55}px`,
                 left: "5%",
                 width: isMobile ? "60px" : "95px",
                 height: isMobile ? "40px" : "63px",
                 objectFit: "cover",
                 cursor: "pointer",
                 boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
-                zIndex: 10,
               }}
             />
           ))}
         </div>
 
         {/* ===============================
-            右側：聖誕樹星星
+            右上：星星
         =============================== */}
         <img
           src={isComplete ? "/treestaron.png" : "/treestaroff.png"}
           alt="Tree Star"
           style={{
             position: "absolute",
-            right: isMobile ? "10%" : "12%",
-            top: isMobile ? "10%" : "8%",
+            right: "12%",
+            top: "8%",
             width: isMobile ? "50px" : "80px",
             filter: isComplete
               ? "brightness(1.4) drop-shadow(0 0 25px #FFD700)"
@@ -140,25 +133,20 @@ const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
         />
 
         {/* ===============================
-            下方：圖鑑按鈕
+            下方：圖鑑
         =============================== */}
-        <div
+        <img
+          src="/illustratedbook.png"
+          alt="Illustrated Book"
           style={{
             position: "absolute",
             bottom: "6%",
             left: "50%",
             transform: "translateX(-50%)",
+            width: isMobile ? "70px" : "100px",
+            cursor: "pointer",
           }}
-        >
-          <img
-            src="/illustratedbook.png"
-            alt="Illustrated Book"
-            style={{
-              width: isMobile ? "70px" : "100px",
-              cursor: "pointer",
-            }}
-          />
-        </div>
+        />
       </div>
 
       {/* ===============================
@@ -189,9 +177,6 @@ const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
         </div>
       )}
 
-      {/* ===============================
-          動畫
-      =============================== */}
       <style>{`
         @keyframes flicker {
           0%,100% { opacity:1; }
