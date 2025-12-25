@@ -4,7 +4,7 @@ import ProfileSetup from "./ProfileSetup";
 import StartScreen from "./StartScreen";
 import CanvasDrawing from "./CanvasDrawing";
 import LetterPage from "./LetterPage";
-import CollectionPage from "./CollectionPage";
+import TreePage from "./TreePage";
 import { supabase } from "./supabaseClient";
 
 // Cloudinary 設定
@@ -16,7 +16,7 @@ export default function App() {
   const [hasProfile, setHasProfile] = useState(false);
   const [showCanvas, setShowCanvas] = useState(false);
   const [showLetter, setShowLetter] = useState(false);
-  const [showCollection, setShowCollection] = useState(false);
+  const [showTree, setShowTree] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -25,9 +25,7 @@ export default function App() {
   const [userName, setUserName] = useState("");
   const [userColor, setUserColor] = useState("");
   const [sockId, setSockId] = useState<number | null>(null);
-  const [userSockImage, setUserSockImage] = useState<string>("");
   const [totalSocksCount, setTotalSocksCount] = useState(0);
-  const [isFirstVisit, setIsFirstVisit] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [awaitingVerification, setAwaitingVerification] = useState(false);
@@ -82,7 +80,7 @@ export default function App() {
         setUserColor(profile.color);
         setHasProfile(true);
 
-        // 檢查是否已經有襪子（如果有，直接顯示收集頁）
+        // 檢查是否已經有襪子（如果有，直接顯示聖誕樹頁）
         const { data: userSock } = await supabase
           .from("socks")
           .select("*")
@@ -97,8 +95,7 @@ export default function App() {
             .select("*", { count: "exact", head: true });
           
           setTotalSocksCount(count || 0);
-          setIsFirstVisit(false);
-          setShowCollection(true);
+          setShowTree(true);
         }
       } else {
         console.log("❌ 沒有 profile，需要設定");
@@ -117,7 +114,7 @@ export default function App() {
     setHasProfile(false);
     setShowCanvas(false);
     setShowLetter(false);
-    setShowCollection(false);
+    setShowTree(false);
     setLoading(false);
   };
 
@@ -227,9 +224,6 @@ export default function App() {
 
       console.log("✅ 圖片上傳成功:", imageUrl);
 
-      // 儲存圖片 URL 以便之後顯示動畫
-      setUserSockImage(imageUrl);
-
       // 儲存到 Supabase
       const { data: sockData, error: insertError } = await supabase
         .from('socks')
@@ -282,11 +276,10 @@ export default function App() {
         .select("*", { count: "exact", head: true });
       
       setTotalSocksCount(count || 0);
-      setIsFirstVisit(true); // 第一次訪問，播放動畫
       
-      // 跳轉到收集頁面
+      // 跳轉到聖誕樹頁面
       setShowLetter(false);
-      setShowCollection(true);
+      setShowTree(true);
       
     } catch (err: any) {
       console.error("❌ 儲存信件失敗:", err);
@@ -393,15 +386,9 @@ export default function App() {
     return <ProfileSetup onComplete={handleProfileComplete} />;
   }
 
-  // 顯示收集頁面
-  if (showCollection) {
-    return (
-      <CollectionPage
-        userSockImage={userSockImage}
-        totalSocksCount={totalSocksCount}
-        isFirstVisit={isFirstVisit}
-      />
-    );
+  // 顯示聖誕樹頁面
+  if (showTree) {
+    return <TreePage totalSocksCount={totalSocksCount} />;
   }
 
   // 已登入且有 profile，但還沒開始繪製 - 顯示 Start 畫面
