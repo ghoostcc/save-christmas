@@ -29,7 +29,7 @@ const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
         left: 0,
         width: "100%",
         height: "100%",
-        backgroundImage: isMobile ? "url('/mainDraw-mobile.png')" : "url('/mainDraw.png')",
+        backgroundImage: isMobile ? "url('/tree.png')" : "url('/tree.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
