@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 type TreePageProps = {
   totalSocksCount: number;
@@ -6,62 +6,45 @@ type TreePageProps = {
 
 const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
-  const [vw, setVw] = useState(
-    typeof window !== "undefined" ? window.innerWidth : 1200
-  );
-  const [vh, setVh] = useState(
-    typeof window !== "undefined" ? window.innerHeight : 800
-  );
-
-  const isMobile = vw <= 768;
   const isComplete = totalSocksCount >= 30;
 
-  useEffect(() => {
-    const onResize = () => {
-      setVw(window.innerWidth);
-      setVh(window.innerHeight);
-    };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  /* ⭐ 關鍵：用數學算舞台尺寸 */
-  const stageWidth = Math.min(vw, (vh * 9) / 16);
-  const stageHeight = Math.min(vh, (vw * 16) / 9);
-
   return (
-    /* 外層：整個螢幕 */
+    /* ===============================
+       外層：整個瀏覽器視窗
+    =============================== */
     <div
       style={{
         position: "fixed",
         inset: 0,
-        backgroundColor: "#EB9B09",
+        backgroundColor: "#EB9B09", // 你指定的底色
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         overflow: "hidden",
       }}
     >
-      {/* 中層：真正正確的 9:16 舞台 */}
+      {/* ===============================
+         內層：桌機橫向舞台
+      =============================== */}
       <div
         style={{
           position: "relative",
-          width: stageWidth,
-          height: stageHeight,
+          height: "100vh",               // ⭐ 關鍵：高度鎖死
+          aspectRatio: "1920 / 1080",    // ⭐ 橫式場景
           backgroundImage: "url('/tree.png')",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
-          backgroundSize: "contain",
+          backgroundSize: "contain",     // 不裁切、不放大
         }}
       >
         {/* 左側：壁爐 + 火焰 + 照片 */}
         <div
           style={{
             position: "absolute",
-            left: isMobile ? "6%" : "8%",
-            top: isMobile ? "42%" : "38%",
-            width: isMobile ? "120px" : "200px",
-            height: isMobile ? "140px" : "230px",
+            left: "8%",
+            top: "32%",
+            width: "200px",
+            height: "230px",
           }}
         >
           {isComplete && (
@@ -106,10 +89,10 @@ const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
               onClick={() => setSelectedPhoto(src)}
               style={{
                 position: "absolute",
-                top: `${-60 + i * 55}px`,
+                top: `${-70 + i * 60}px`,
                 left: "5%",
-                width: isMobile ? "60px" : "95px",
-                height: isMobile ? "40px" : "63px",
+                width: "95px",
+                height: "63px",
                 objectFit: "cover",
                 cursor: "pointer",
                 boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
@@ -118,14 +101,14 @@ const TreePage: React.FC<TreePageProps> = ({ totalSocksCount }) => {
           ))}
         </div>
 
-        {/* 星星 */}
+        {/* 右側：聖誕樹星星 */}
         <img
           src={isComplete ? "/treestaron.png" : "/treestaroff.png"}
           style={{
             position: "absolute",
             right: "12%",
             top: "8%",
-            width: isMobile ? "50px" : "80px",
+            width: "80px",
             filter: isComplete
               ? "brightness(1.4) drop-shadow(0 0 25px #FFD700)"
               : "brightness(0.8)",
